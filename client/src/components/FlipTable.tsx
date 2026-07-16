@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import type { FlipOpportunity, FlipType } from "../../../shared/types.js";
-import { getColumnsForType } from "../columns.js";
-import { formatItemName } from "../format.js";
+import { getColumnsForType, type ColumnDef } from "../columns.js";
+import { formatItemName, formatCoins } from "../format.js";
 import type { ItemMeta } from "../api.js";
+import { yourProfitPerDay } from "../budget.js";
 import { FlipRow } from "./FlipRow.js";
 
 interface FlipTableProps {
@@ -29,20 +30,41 @@ export function FlipTable({
   const [sortKey, setSortKey] = useState("");
   const [sortDesc, setSortDesc] = useState(true);
 
-  const activeColumns = useMemo(() => getColumnsForType(type), [type]);
-  // When the stored key doesn't exist on this tab, fall back to the tab's
-  // headline metric: profit/hour where available, otherwise profit/unit.
+  const activeColumns = useMemo<ColumnDef[]>(() => {
+    const base = getColumnsForType(type);
+    if (budget <= 0) return base;
+    return [
+      ...base,
+      {
+        key: "yourPerDay",
+        label: "Your/Day",
+        getValue: (f) => yourProfitPerDay(f, budget),
+        render: (f) => formatCoins(yourProfitPerDay(f, budget)),
+        emphasize: true,
+      },
+    ];
+  }, [type, budget]);
+
+  // When the stored key doesn't exist on this tab, fall back to the headline
+  // metric: with a budget set that's Your/Day, else profit/hour or profit/unit.
   const activeSortKey = activeColumns.some((c) => c.key === sortKey)
     ? sortKey
-    : activeColumns.find((c) => c.key === "profitPerHour")?.key ?? "profitPerUnit";
+    : budget > 0
+      ? "yourPerDay"
+      : activeColumns.find((c) => c.key === "profitPerHour")?.key ?? "profitPerUnit";
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const matches = query
+    let matches = query
       ? flips.filter((f) =>
           (meta.names[f.itemId] ?? formatItemName(f.itemId)).toLowerCase().includes(query)
         )
       : flips;
+
+    // With a budget set, a flip you can't afford even one unit of is noise.
+    if (budget > 0) {
+      matches = matches.filter((f) => yourProfitPerDay(f, budget) > 0);
+    }
 
     const col = activeColumns.find((c) => c.key === activeSortKey);
     const sorted = [...matches];
@@ -52,7 +74,7 @@ export function FlipTable({
     // Pinned favorites float above everything, keeping their relative sort.
     sorted.sort((a, b) => Number(favorites.has(b.itemId)) - Number(favorites.has(a.itemId)));
     return sorted.slice(0, 150);
-  }, [flips, meta, search, activeColumns, activeSortKey, sortDesc, favorites]);
+  }, [flips, meta, search, budget, activeColumns, activeSortKey, sortDesc, favorites]);
 
   function handleSort(key: string) {
     if (key === activeSortKey) {
@@ -90,7 +112,6 @@ export function FlipTable({
                 {col.label} {col.key === activeSortKey ? (sortDesc ? "▼" : "▲") : ""}
               </th>
             ))}
-            {budget > 0 && <th title="realistic daily profit with your budget">Your/Day</th>}
           </tr>
         </thead>
         <tbody>
@@ -100,7 +121,6 @@ export function FlipTable({
               flip={flip}
               columns={activeColumns}
               meta={meta}
-              budget={budget}
               isFavorite={favorites.has(flip.itemId)}
               onToggleFavorite={onToggleFavorite}
             />

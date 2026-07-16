@@ -3,18 +3,16 @@ import type { FlipOpportunity } from "../../../shared/types.js";
 import type { ColumnDef } from "../columns.js";
 import type { ItemMeta } from "../api.js";
 import { formatCoins, formatItemName, tierColor, iconUrl } from "../format.js";
-import { yourProfitPerDay } from "../budget.js";
 
 interface FlipRowProps {
   flip: FlipOpportunity;
   columns: ColumnDef[];
   meta: ItemMeta;
-  budget: number;
   isFavorite: boolean;
   onToggleFavorite: (itemId: string) => void;
 }
 
-export function FlipRow({ flip, columns, meta, budget, isFavorite, onToggleFavorite }: FlipRowProps) {
+export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: FlipRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -89,13 +87,10 @@ export function FlipRow({ flip, columns, meta, budget, isFavorite, onToggleFavor
             {col.render(flip)}
           </td>
         ))}
-        {budget > 0 && (
-          <td className="profit-positive">{formatCoins(yourProfitPerDay(flip, budget))}</td>
-        )}
       </tr>
       {isCraft && expanded && flip.type === "craft" && (
         <tr className="ingredient-row">
-          <td colSpan={columns.length + (budget > 0 ? 2 : 1)}>
+          <td colSpan={columns.length + 1}>
             <div className="ingredient-list">
               buy:{" "}
               {flip.ingredients
