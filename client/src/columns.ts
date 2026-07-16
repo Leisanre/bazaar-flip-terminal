@@ -36,10 +36,10 @@ const spreadColumns: ColumnDef[] = [
     render: (f) => formatPercent(f.marginPercent),
   },
   {
-    key: "volumeScore",
-    label: "Volume",
-    getValue: (f) => (f as any).volumeScore,
-    render: (f) => formatCoins((f as any).volumeScore),
+    key: "tradedPerDay",
+    label: "Traded/Day",
+    getValue: (f) => (f as any).tradedPerDay ?? 0,
+    render: (f) => formatCoins((f as any).tradedPerDay ?? 0),
   },
   {
     key: "profitPerHour",
@@ -75,6 +75,12 @@ const craftColumns: ColumnDef[] = [
     getValue: (f) => f.marginPercent,
     render: (f) => formatPercent(f.marginPercent),
   },
+  {
+    key: "tradedPerDay",
+    label: "Traded/Day",
+    getValue: (f) => (f as any).tradedPerDay ?? 0,
+    render: (f) => formatCoins((f as any).tradedPerDay ?? 0),
+  },
 ];
 
 const npcColumns: ColumnDef[] = [
@@ -108,6 +114,12 @@ const npcColumns: ColumnDef[] = [
     label: "Margin",
     getValue: (f) => f.marginPercent,
     render: (f) => formatPercent(f.marginPercent),
+  },
+  {
+    key: "tradedPerDay",
+    label: "Traded/Day",
+    getValue: (f) => (f as any).tradedPerDay ?? 0,
+    render: (f) => formatCoins((f as any).tradedPerDay ?? 0),
   },
   {
     key: "profitPerDay",

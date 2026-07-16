@@ -35,7 +35,12 @@ export interface ManipulationCheck {
   suspicious?: boolean;
 }
 
-export interface SpreadFlip extends ManipulationCheck {
+export interface TradeActivity {
+  // Units actually traded per day (moving-week average from Hypixel).
+  tradedPerDay: number;
+}
+
+export interface SpreadFlip extends ManipulationCheck, TradeActivity {
   type: "spread";
   itemId: string;
   buyOrderPrice: number;
@@ -46,7 +51,7 @@ export interface SpreadFlip extends ManipulationCheck {
   profitPerHour: number;
 }
 
-export interface CraftFlip extends ManipulationCheck {
+export interface CraftFlip extends ManipulationCheck, TradeActivity {
   type: "craft";
   itemId: string;
   craftCost: number;
@@ -56,7 +61,7 @@ export interface CraftFlip extends ManipulationCheck {
   ingredients: RecipeIngredient[];
 }
 
-export interface NpcFlip extends ManipulationCheck {
+export interface NpcFlip extends ManipulationCheck, TradeActivity {
   type: "npc";
   itemId: string;
   direction: "reverse" | "npc_to_market";

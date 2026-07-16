@@ -4,6 +4,8 @@ import {
   MIN_VOLUME_THRESHOLD,
   MAX_SPREAD_MARGIN_PERCENT,
   MIN_ORDER_COUNT,
+  MIN_DAILY_TRADED_SPREAD,
+  MIN_DAILY_TRADED_OTHER,
 } from "../../shared/constants.js";
 import type { BazaarProduct, CraftFlip, ItemRecipe, NpcFlip, SpreadFlip } from "../../shared/types.js";
 
@@ -40,7 +42,9 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
   // Coflnet-style throughput metric: units actually traded per hour (the
   // slower side of the moving-week average) x profit per unit. Ranks a 3%
   // margin that fills constantly above a 100% margin that fills never.
-  const unitsPerHour = Math.min(product.buyMovingWeek, product.sellMovingWeek) / HOURS_PER_WEEK;
+  const slowerSideWeekly = Math.min(product.buyMovingWeek, product.sellMovingWeek);
+  const tradedPerDay = slowerSideWeekly / 7;
+  if (tradedPerDay < MIN_DAILY_TRADED_SPREAD) return null;
 
   return {
     type: "spread",
@@ -50,7 +54,8 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
     marginPercent: margin,
     profitPerUnit,
     volumeScore,
-    profitPerHour: profitPerUnit * unitsPerHour,
+    profitPerHour: profitPerUnit * (slowerSideWeekly / HOURS_PER_WEEK),
+    tradedPerDay,
   };
 }
 
@@ -73,6 +78,10 @@ export function calculateCraftFlip(
   const margin = marginPercent(craftCost, revenueAfterTax);
   if (margin < MIN_MARGIN_PERCENT || margin > MAX_SPREAD_MARGIN_PERCENT) return null;
 
+  // Revenue arrives via a sell order, filled by insta-buyers of the crafted item.
+  const tradedPerDay = sellProduct.buyMovingWeek / 7;
+  if (tradedPerDay < MIN_DAILY_TRADED_OTHER) return null;
+
   return {
     type: "craft",
     itemId: recipe.itemId,
@@ -81,6 +90,7 @@ export function calculateCraftFlip(
     marginPercent: margin,
     profitPerUnit: revenueAfterTax - craftCost,
     ingredients: recipe.ingredients,
+    tradedPerDay,
   };
 }
 
@@ -100,6 +110,10 @@ export function calculateReverseNpcFlip(
   const margin = marginPercent(costPrice, npcSellPrice);
   if (margin < MIN_MARGIN_PERCENT) return null;
 
+  // Supply comes from insta-buying player sell offers.
+  const tradedPerDay = product.buyMovingWeek / 7;
+  if (tradedPerDay < MIN_DAILY_TRADED_OTHER) return null;
+
   return {
     type: "npc",
     itemId: product.productId,
@@ -108,6 +122,7 @@ export function calculateReverseNpcFlip(
     revenuePrice: npcSellPrice,
     marginPercent: margin,
     profitPerUnit: npcSellPrice - costPrice,
+    tradedPerDay,
   };
 }
 
@@ -127,6 +142,10 @@ export function calculateForwardNpcFlip(
   const profitPerUnit = revenueAfterTax - npcBuyPrice;
   if (margin < MIN_MARGIN_PERCENT) return null;
 
+  // Revenue arrives via a sell order, filled by insta-buyers.
+  const tradedPerDay = product.buyMovingWeek / 7;
+  if (tradedPerDay < MIN_DAILY_TRADED_OTHER) return null;
+
   return {
     type: "npc",
     itemId: product.productId,
@@ -137,5 +156,6 @@ export function calculateForwardNpcFlip(
     profitPerUnit,
     dailyLimit,
     profitPerDay: profitPerUnit * dailyLimit,
+    tradedPerDay,
   };
 }

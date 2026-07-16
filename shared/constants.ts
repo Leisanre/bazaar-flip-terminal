@@ -25,3 +25,9 @@ export const HISTORY_WINDOW_HOURS = 48;
 export const MANIPULATION_RATIO = 2;
 // ~3 hours of samples before we trust the median enough to flag anything.
 export const MIN_HISTORY_SAMPLES = 36;
+
+// Real-activity floors, from the moving-week trade stats. Community guidance
+// (Coflnet guide) targets 10k+ units/day for spread flips; craft and NPC
+// flips tolerate slower markets since fills are one-sided.
+export const MIN_DAILY_TRADED_SPREAD = 10_000;
+export const MIN_DAILY_TRADED_OTHER = 1_000;
