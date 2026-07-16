@@ -29,10 +29,16 @@ let cache: Map<string, BazaarProduct> = new Map();
 let lastUpdated = 0;
 
 function toBazaarProduct(raw: RawBazaarResponse["products"][string]): BazaarProduct {
+  // quick_status prices are weighted averages over a chunk of the book and
+  // can sit far from what the game actually shows. The order summaries carry
+  // the real top-of-book: buy_summary[0] = lowest sell offer (insta-buy),
+  // sell_summary[0] = highest buy order (insta-sell).
+  const topBuy = raw.buy_summary[0]?.pricePerUnit;
+  const topSell = raw.sell_summary[0]?.pricePerUnit;
   return {
     productId: raw.product_id,
-    buyPrice: raw.quick_status.buyPrice,
-    sellPrice: raw.quick_status.sellPrice,
+    buyPrice: topBuy ?? raw.quick_status.buyPrice,
+    sellPrice: topSell ?? raw.quick_status.sellPrice,
     buyVolume: raw.quick_status.buyVolume,
     sellVolume: raw.quick_status.sellVolume,
     buyMovingWeek: raw.quick_status.buyMovingWeek,
