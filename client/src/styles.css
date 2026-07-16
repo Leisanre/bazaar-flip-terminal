@@ -369,6 +369,14 @@ tbody td {
   white-space: normal;
 }
 
+.row-closed td {
+  color: var(--text-muted);
+}
+
+.row-closed .item-name {
+  color: var(--text-tertiary);
+}
+
 .manip-badge {
   font-family: var(--font-mono);
   font-size: 10px;

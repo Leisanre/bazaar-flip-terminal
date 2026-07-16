@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "bazaarflip",
+	"version": "${version}",
+	"name": "BazaarFlip Tracker",
+	"description": "Sends your [Bazaar] chat events to your local Bazaar Flip Terminal so it can track your orders. Read-only: never touches gameplay.",
+	"authors": [
+		"Leisanre"
+	],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.markj.bazaarflip.client.BazaarFlipClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

@@ -8,6 +8,8 @@ import { startRecipePolling } from "./services/recipeService.js";
 import { startPriceHistoryTracking } from "./services/priceHistoryService.js";
 import { flipsRouter } from "./routes/flipsRouter.js";
 import { metaRouter } from "./routes/metaRouter.js";
+import { positionsRouter } from "./routes/positionsRouter.js";
+import { loadPositions } from "./services/positionsService.js";
 
 const PORT = process.env.PORT ?? 4000;
 
@@ -15,6 +17,9 @@ const app = express();
 app.use(cors());
 app.use("/api/flips", flipsRouter);
 app.use("/api/meta", metaRouter);
+app.use("/api/positions", positionsRouter);
+
+loadPositions();
 
 // In production the API server also serves the built dashboard, so one
 // hosted URL covers everything. In dev, vite serves the client separately.

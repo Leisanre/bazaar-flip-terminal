@@ -4,3 +4,8 @@ dist-server/
 data-cache/
 .env
 *.log
+
+# fabric mod build artifacts
+mod/.gradle/
+mod/build/
+mod/run/

@@ -3,6 +3,7 @@ import type { FlipOpportunity, FlipType } from "../../shared/types.js";
 import { fetchFlips, fetchItemMeta, type ItemMeta } from "./api.js";
 import { FlipTable } from "./components/FlipTable.js";
 import { Toolbar } from "./components/Toolbar.js";
+import { TradesPanel } from "./components/TradesPanel.js";
 
 const BUDGET_KEY = "bft-budget";
 const FAVORITES_KEY = "bft-favorites";
@@ -20,16 +21,19 @@ function loadFavorites(): Set<string> {
   }
 }
 
-const TABS: { type: FlipType; label: string }[] = [
+type TabId = FlipType | "trades";
+
+const TABS: { type: TabId; label: string }[] = [
   { type: "spread", label: "Bazaar Spread" },
   { type: "craft", label: "Craft Flips" },
   { type: "npc", label: "NPC Flips" },
+  { type: "trades", label: "My Trades" },
 ];
 
 const POLL_MS = 20_000;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<FlipType>("spread");
+  const [activeTab, setActiveTab] = useState<TabId>("spread");
   const [flipsByType, setFlipsByType] = useState<Record<FlipType, FlipOpportunity[]>>({
     spread: [],
     craft: [],
@@ -113,28 +117,36 @@ export default function App() {
             onClick={() => setActiveTab(tab.type)}
           >
             {tab.label}
-            <span className="tab-count">{flipsByType[tab.type].length}</span>
+            {tab.type !== "trades" && (
+              <span className="tab-count">{flipsByType[tab.type].length}</span>
+            )}
           </button>
         ))}
       </nav>
 
       <main className="content">
-        <Toolbar
-          search={search}
-          onSearchChange={setSearch}
-          budget={budget}
-          onBudgetChange={handleBudgetChange}
-        />
-        <FlipTable
-          type={activeTab}
-          flips={flipsByType[activeTab]}
-          meta={meta}
-          loading={loading}
-          search={search}
-          budget={budget}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-        />
+        {activeTab === "trades" ? (
+          <TradesPanel />
+        ) : (
+          <>
+            <Toolbar
+              search={search}
+              onSearchChange={setSearch}
+              budget={budget}
+              onBudgetChange={handleBudgetChange}
+            />
+            <FlipTable
+              type={activeTab}
+              flips={flipsByType[activeTab]}
+              meta={meta}
+              loading={loading}
+              search={search}
+              budget={budget}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          </>
+        )}
       </main>
     </div>
   );
