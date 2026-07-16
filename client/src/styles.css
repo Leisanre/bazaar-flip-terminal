@@ -1,0 +1,291 @@
+:root {
+  /* Foundation: obsidian/end-stone world, not generic slate */
+  --bg-base: #0c0b12;
+  --bg-surface-100: #131220;
+  --bg-surface-200: #191828;
+  --bg-surface-300: #201f33;
+  --bg-inset: #08070d;
+
+  --border-subtle: rgba(180, 170, 255, 0.06);
+  --border-default: rgba(180, 170, 255, 0.1);
+  --border-strong: rgba(180, 170, 255, 0.18);
+
+  --text-primary: #eae8f5;
+  --text-secondary: #a9a5c4;
+  --text-tertiary: #74708f;
+  --text-muted: #4c495e;
+
+  /* Coin gold: the one accent, means profit/emphasis, nothing else */
+  --coin-gold: #f0c419;
+  --coin-gold-dim: #a68a2b;
+
+  --loss-red: #e0555f;
+  --gain-green: #5ec98a;
+
+  /* Minecraft item rarity tiers — authentic SkyBlock color language */
+  --tier-common: #9d9d9d;
+  --tier-uncommon: #55ff55;
+  --tier-rare: #5555ff;
+  --tier-epic: #aa00aa;
+  --tier-legendary: #ffaa00;
+  --tier-mythic: #ff55ff;
+  --tier-divine: #55ffff;
+  --tier-special: #ff5555;
+  --tier-default: #4c495e;
+
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 0.5px solid var(--border-default);
+  background: var(--bg-base);
+}
+
+.topbar-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.topbar-title .mark {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.topbar-title .sub {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gain-green);
+  box-shadow: 0 0 6px rgba(94, 201, 138, 0.6);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-5);
+  border-bottom: 0.5px solid var(--border-default);
+  background: var(--bg-base);
+}
+
+.tab-button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.tab-button:hover {
+  color: var(--text-secondary);
+}
+
+.tab-button.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--coin-gold);
+}
+
+.tab-count {
+  color: var(--text-muted);
+  margin-left: var(--space-1);
+}
+
+.content {
+  flex: 1;
+  padding: var(--space-5);
+  overflow: auto;
+}
+
+.table-wrap {
+  border: 0.5px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-surface-100);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+thead th {
+  text-align: right;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-tertiary);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--bg-surface-200);
+  border-bottom: 0.5px solid var(--border-default);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+thead th:first-child,
+tbody td:first-child {
+  text-align: left;
+}
+
+thead th:hover {
+  color: var(--text-secondary);
+}
+
+thead th.sorted {
+  color: var(--coin-gold-dim);
+}
+
+tbody tr {
+  border-bottom: 0.5px solid var(--border-subtle);
+  transition: background 150ms ease-out;
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: var(--bg-surface-200);
+}
+
+tbody td {
+  padding: var(--space-3) var(--space-4);
+  text-align: right;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.item-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.tier-strip {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  min-height: 20px;
+}
+
+.item-icon-slot {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-icon {
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+}
+
+.item-name {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.manip-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--loss-red);
+  border: 0.5px solid rgba(224, 85, 95, 0.35);
+  border-radius: 4px;
+  padding: 1px var(--space-1);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.profit-positive {
+  color: var(--coin-gold);
+  font-weight: 600;
+}
+
+.margin-cell {
+  color: var(--gain-green);
+  font-weight: 600;
+}
+
+.empty-state {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.loading-state {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}

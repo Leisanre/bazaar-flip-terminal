@@ -1,0 +1,71 @@
+export interface BazaarOrderSummary {
+  amount: number;
+  pricePerUnit: number;
+  orders: number;
+}
+
+export interface BazaarProduct {
+  productId: string;
+  buyPrice: number;
+  sellPrice: number;
+  buyVolume: number;
+  sellVolume: number;
+  buyMovingWeek: number;
+  sellMovingWeek: number;
+  buyOrders: number;
+  sellOrders: number;
+}
+
+export interface RecipeIngredient {
+  itemId: string;
+  count: number;
+}
+
+export interface ItemRecipe {
+  itemId: string;
+  ingredients: RecipeIngredient[];
+}
+
+export type FlipType = "spread" | "craft" | "npc";
+
+export interface ManipulationCheck {
+  // Current sell-side price divided by the item's rolling median.
+  // Undefined until enough history has been collected.
+  medianRatio?: number;
+  suspicious?: boolean;
+}
+
+export interface SpreadFlip extends ManipulationCheck {
+  type: "spread";
+  itemId: string;
+  buyOrderPrice: number;
+  sellOrderPrice: number;
+  marginPercent: number;
+  profitPerUnit: number;
+  volumeScore: number;
+  profitPerHour: number;
+}
+
+export interface CraftFlip extends ManipulationCheck {
+  type: "craft";
+  itemId: string;
+  craftCost: number;
+  sellPrice: number;
+  marginPercent: number;
+  profitPerUnit: number;
+  ingredients: RecipeIngredient[];
+}
+
+export interface NpcFlip extends ManipulationCheck {
+  type: "npc";
+  itemId: string;
+  direction: "reverse" | "npc_to_market";
+  costPrice: number;
+  revenuePrice: number;
+  marginPercent: number;
+  profitPerUnit: number;
+  dailyLimit?: number;
+  profitPerDay?: number;
+}
+
+export type FlipOpportunity = SpreadFlip | CraftFlip | NpcFlip;
