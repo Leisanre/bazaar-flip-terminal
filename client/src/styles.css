@@ -389,6 +389,17 @@ tbody td {
   cursor: help;
 }
 
+.unknown-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  border: 0.5px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 1px var(--space-1);
+  white-space: nowrap;
+  cursor: help;
+}
+
 .profit-positive {
   color: var(--coin-gold);
   font-weight: 600;

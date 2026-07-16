@@ -72,6 +72,14 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
                 ⚠ pumped
               </span>
             )}
+            {flip.medianRatio === undefined && (
+              <span
+                className="unknown-badge"
+                title="Not enough price history yet to rule out manipulation — treat big margins with suspicion"
+              >
+                ? unverified
+              </span>
+            )}
             <button className="copy-button" title={`copy "/bz ${displayName}"`} onClick={copyBzCommand}>
               {copied ? "copied!" : "/bz"}
             </button>
