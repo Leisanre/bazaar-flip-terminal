@@ -6,3 +6,9 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /api/flips/spread
+    envVars:
+      # Neon (or any Postgres) connection string. With this set, tracked
+      # trades and price history survive restarts; without it they live in
+      # local files that free-tier hosting wipes.
+      - key: DATABASE_URL
+        sync: false

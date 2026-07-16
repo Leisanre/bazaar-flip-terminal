@@ -33,6 +33,11 @@ export const MIN_HISTORY_SAMPLES = 36;
 export const MIN_DAILY_COINS_SPREAD = 100_000_000;
 export const MIN_DAILY_COINS_OTHER = 250_000;
 
+// Coin flow alone lets expensive-but-dead items through (340 Festering
+// Maggots/day is 425M coins but only ~14 trades an hour — no exit door).
+// Require real unit velocity too. Recombobulator (~7k/day) still passes.
+export const MIN_DAILY_UNITS_SPREAD = 2_000;
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

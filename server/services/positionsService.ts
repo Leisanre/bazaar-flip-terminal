@@ -1,37 +1,23 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
-import path from "path";
 import type { BazaarEvent, TrackedPosition } from "../../shared/positions.js";
 import { formatItemName } from "../../shared/itemNames.js";
 import { getBazaarProducts } from "./bazaarService.js";
 import { getAllItemNames } from "./itemsService.js";
-
-const CACHE_DIR = path.resolve("data-cache");
-const POSITIONS_FILE = path.join(CACHE_DIR, "positions.json");
-const UNKNOWN_LINES_FILE = path.join(CACHE_DIR, "unknown-bazaar-lines.json");
+import { kvGet, kvSet } from "./kvStore.js";
 
 let positions: TrackedPosition[] = [];
 let unknownLines: string[] = [];
 let nextId = 1;
 
-export function loadPositions(): void {
-  if (!existsSync(POSITIONS_FILE)) return;
-  try {
-    const raw = JSON.parse(readFileSync(POSITIONS_FILE, "utf-8"));
-    positions = raw.positions ?? [];
-    nextId = raw.nextId ?? positions.length + 1;
-  } catch (err) {
-    console.error("positions file unreadable, starting fresh", err);
-  }
+export async function loadPositions(): Promise<void> {
+  const raw = await kvGet<{ nextId: number; positions: TrackedPosition[] }>("positions");
+  if (!raw) return;
+  positions = raw.positions ?? [];
+  nextId = raw.nextId ?? positions.length + 1;
 }
 
 function persist(): void {
-  try {
-    mkdirSync(CACHE_DIR, { recursive: true });
-    writeFileSync(POSITIONS_FILE, JSON.stringify({ nextId, positions }));
-    writeFileSync(UNKNOWN_LINES_FILE, JSON.stringify(unknownLines.slice(-200)));
-  } catch (err) {
-    console.error("positions persist failed", err);
-  }
+  void kvSet("positions", { nextId, positions });
+  void kvSet("unknown-bazaar-lines", unknownLines.slice(-200));
 }
 
 function findOpen(player: string, itemName: string, status: TrackedPosition["status"]) {

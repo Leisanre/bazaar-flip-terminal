@@ -1,5 +1,3 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
-import path from "path";
 import {
   HISTORY_SAMPLE_INTERVAL_MS,
   HISTORY_WINDOW_HOURS,
@@ -7,9 +5,8 @@ import {
   MIN_HISTORY_SAMPLES,
 } from "../../shared/constants.js";
 import { getBazaarProducts } from "./bazaarService.js";
+import { kvGet, kvSet } from "./kvStore.js";
 
-const CACHE_DIR = path.resolve("data-cache");
-const HISTORY_FILE = path.join(CACHE_DIR, "price-history.json");
 const PERSIST_INTERVAL_MS = 10 * 60 * 1000;
 const MAX_SAMPLES = Math.ceil(
   (HISTORY_WINDOW_HOURS * 60 * 60 * 1000) / HISTORY_SAMPLE_INTERVAL_MS
@@ -18,25 +15,15 @@ const MAX_SAMPLES = Math.ceil(
 // Per item: rolling window of sampled insta-buy prices (the side pumps target).
 let history: Map<string, number[]> = new Map();
 
-function loadFromDisk(): void {
-  if (!existsSync(HISTORY_FILE)) return;
-  try {
-    const raw = JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Record<string, number[]>;
-    history = new Map(Object.entries(raw).map(([id, samples]) => [id, samples.slice(-MAX_SAMPLES)]));
-    console.log(`price history loaded: ${history.size} items`);
-  } catch (err) {
-    console.error("price history file unreadable, starting fresh", err);
-    history = new Map();
-  }
+async function loadFromStore(): Promise<void> {
+  const raw = await kvGet<Record<string, number[]>>("price-history");
+  if (!raw) return;
+  history = new Map(Object.entries(raw).map(([id, samples]) => [id, samples.slice(-MAX_SAMPLES)]));
+  console.log(`price history loaded: ${history.size} items`);
 }
 
-function persistToDisk(): void {
-  try {
-    mkdirSync(CACHE_DIR, { recursive: true });
-    writeFileSync(HISTORY_FILE, JSON.stringify(Object.fromEntries(history)));
-  } catch (err) {
-    console.error("price history persist failed", err);
-  }
+function persistToStore(): void {
+  void kvSet("price-history", Object.fromEntries(history));
 }
 
 function recordSample(): void {
@@ -76,10 +63,10 @@ export function getHistorySampleCount(itemId: string): number {
 }
 
 export function startPriceHistoryTracking(): void {
-  loadFromDisk();
+  void loadFromStore();
   // First sample shortly after boot so a fresh install starts warming up
   // immediately instead of waiting a full interval.
   setTimeout(recordSample, 30_000);
   setInterval(recordSample, HISTORY_SAMPLE_INTERVAL_MS);
-  setInterval(persistToDisk, PERSIST_INTERVAL_MS);
+  setInterval(persistToStore, PERSIST_INTERVAL_MS);
 }

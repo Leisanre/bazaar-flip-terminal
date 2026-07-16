@@ -6,6 +6,7 @@ import {
   MIN_ORDER_COUNT,
   MIN_DAILY_COINS_SPREAD,
   MIN_DAILY_COINS_OTHER,
+  MIN_DAILY_UNITS_SPREAD,
 } from "../../shared/constants.js";
 import type { BazaarProduct, CraftFlip, ItemRecipe, NpcFlip, SpreadFlip } from "../../shared/types.js";
 
@@ -45,7 +46,7 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
   const slowerSideWeekly = Math.min(product.buyMovingWeek, product.sellMovingWeek);
   const tradedPerDay = slowerSideWeekly / 7;
   const coinsPerDay = tradedPerDay * sellOrderPrice;
-  if (coinsPerDay < MIN_DAILY_COINS_SPREAD) return null;
+  if (coinsPerDay < MIN_DAILY_COINS_SPREAD || tradedPerDay < MIN_DAILY_UNITS_SPREAD) return null;
 
   return {
     type: "spread",
