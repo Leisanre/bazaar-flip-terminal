@@ -7,6 +7,7 @@ import { TradesPanel } from "./components/TradesPanel.js";
 
 const BUDGET_KEY = "bft-budget";
 const FAVORITES_KEY = "bft-favorites";
+const SAFE_MODE_KEY = "bft-safe-mode";
 
 function loadBudget(): number {
   const raw = Number(localStorage.getItem(BUDGET_KEY));
@@ -45,6 +46,12 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [budget, setBudget] = useState(loadBudget);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
+  const [safeMode, setSafeMode] = useState(localStorage.getItem(SAFE_MODE_KEY) !== "off");
+
+  function handleSafeModeChange(value: boolean) {
+    setSafeMode(value);
+    localStorage.setItem(SAFE_MODE_KEY, value ? "on" : "off");
+  }
 
   function handleBudgetChange(value: number) {
     setBudget(value);
@@ -134,6 +141,8 @@ export default function App() {
               onSearchChange={setSearch}
               budget={budget}
               onBudgetChange={handleBudgetChange}
+              safeMode={safeMode}
+              onSafeModeChange={handleSafeModeChange}
             />
             <FlipTable
               type={activeTab}
@@ -142,6 +151,7 @@ export default function App() {
               loading={loading}
               search={search}
               budget={budget}
+              safeMode={safeMode}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
             />

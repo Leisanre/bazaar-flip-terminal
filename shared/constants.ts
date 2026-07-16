@@ -38,6 +38,10 @@ export const MIN_DAILY_COINS_OTHER = 250_000;
 // Require real unit velocity too. Recombobulator (~7k/day) still passes.
 export const MIN_DAILY_UNITS_SPREAD = 2_000;
 
+// "Safe mode" beginner gate (client toggle, spread tab): only markets deep
+// enough that fills are fast and prices stay honest.
+export const SAFE_MODE_MIN_DAILY_TRADED = 500_000;
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

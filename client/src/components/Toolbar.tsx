@@ -6,6 +6,8 @@ interface ToolbarProps {
   onSearchChange: (value: string) => void;
   budget: number;
   onBudgetChange: (value: number) => void;
+  safeMode: boolean;
+  onSafeModeChange: (value: boolean) => void;
 }
 
 // Accepts "10m", "1.5b", "500k" or plain numbers.
@@ -19,7 +21,14 @@ export function parseBudgetInput(raw: string): number {
   return base * mult;
 }
 
-export function Toolbar({ search, onSearchChange, budget, onBudgetChange }: ToolbarProps) {
+export function Toolbar({
+  search,
+  onSearchChange,
+  budget,
+  onBudgetChange,
+  safeMode,
+  onSafeModeChange,
+}: ToolbarProps) {
   const [budgetText, setBudgetText] = useState(budget > 0 ? formatCoins(budget) : "");
 
   function handleBudgetChange(raw: string) {
@@ -54,6 +63,17 @@ export function Toolbar({ search, onSearchChange, budget, onBudgetChange }: Tool
         />
         {budget > 0 && <span className="budget-readout">= {formatCoins(budget)} coins</span>}
       </div>
+      <label
+        className="safe-toggle"
+        title="Spread tab: only show markets with 500k+ units traded per day — fast fills, honest prices"
+      >
+        <input
+          type="checkbox"
+          checked={safeMode}
+          onChange={(e) => onSafeModeChange(e.target.checked)}
+        />
+        safe mode
+      </label>
     </div>
   );
 }

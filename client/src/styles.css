@@ -309,6 +309,24 @@ tbody td {
   white-space: nowrap;
 }
 
+.safe-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.safe-toggle input {
+  accent-color: var(--coin-gold);
+  cursor: pointer;
+}
+
 .fav-button {
   appearance: none;
   background: transparent;
