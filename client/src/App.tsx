@@ -2,6 +2,23 @@ import { useEffect, useState } from "react";
 import type { FlipOpportunity, FlipType } from "../../shared/types.js";
 import { fetchFlips, fetchItemMeta, type ItemMeta } from "./api.js";
 import { FlipTable } from "./components/FlipTable.js";
+import { Toolbar } from "./components/Toolbar.js";
+
+const BUDGET_KEY = "bft-budget";
+const FAVORITES_KEY = "bft-favorites";
+
+function loadBudget(): number {
+  const raw = Number(localStorage.getItem(BUDGET_KEY));
+  return Number.isFinite(raw) && raw > 0 ? raw : 0;
+}
+
+function loadFavorites(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]") as string[]);
+  } catch {
+    return new Set();
+  }
+}
 
 const TABS: { type: FlipType; label: string }[] = [
   { type: "spread", label: "Bazaar Spread" },
@@ -21,6 +38,24 @@ export default function App() {
   const [meta, setMeta] = useState<ItemMeta>({ names: {}, tiers: {}, materials: {} });
   const [lastUpdated, setLastUpdated] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [budget, setBudget] = useState(loadBudget);
+  const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
+
+  function handleBudgetChange(value: number) {
+    setBudget(value);
+    localStorage.setItem(BUDGET_KEY, String(value));
+  }
+
+  function handleToggleFavorite(itemId: string) {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetchItemMeta()
@@ -84,11 +119,21 @@ export default function App() {
       </nav>
 
       <main className="content">
+        <Toolbar
+          search={search}
+          onSearchChange={setSearch}
+          budget={budget}
+          onBudgetChange={handleBudgetChange}
+        />
         <FlipTable
           type={activeTab}
           flips={flipsByType[activeTab]}
           meta={meta}
           loading={loading}
+          search={search}
+          budget={budget}
+          favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
         />
       </main>
     </div>

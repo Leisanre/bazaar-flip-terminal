@@ -1,17 +1,31 @@
 import { useMemo, useState } from "react";
 import type { FlipOpportunity, FlipType } from "../../../shared/types.js";
 import { getColumnsForType } from "../columns.js";
-import { formatItemName, tierColor, iconUrl } from "../format.js";
+import { formatItemName } from "../format.js";
 import type { ItemMeta } from "../api.js";
+import { FlipRow } from "./FlipRow.js";
 
 interface FlipTableProps {
   type: FlipType;
   flips: FlipOpportunity[];
   meta: ItemMeta;
   loading: boolean;
+  search: string;
+  budget: number;
+  favorites: Set<string>;
+  onToggleFavorite: (itemId: string) => void;
 }
 
-export function FlipTable({ type, flips, meta, loading }: FlipTableProps) {
+export function FlipTable({
+  type,
+  flips,
+  meta,
+  loading,
+  search,
+  budget,
+  favorites,
+  onToggleFavorite,
+}: FlipTableProps) {
   const [sortKey, setSortKey] = useState("");
   const [sortDesc, setSortDesc] = useState(true);
 
@@ -22,13 +36,23 @@ export function FlipTable({ type, flips, meta, loading }: FlipTableProps) {
     ? sortKey
     : activeColumns.find((c) => c.key === "profitPerHour")?.key ?? "profitPerUnit";
 
-  const sorted = useMemo(() => {
+  const visible = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const matches = query
+      ? flips.filter((f) =>
+          (meta.names[f.itemId] ?? formatItemName(f.itemId)).toLowerCase().includes(query)
+        )
+      : flips;
+
     const col = activeColumns.find((c) => c.key === activeSortKey);
-    if (!col) return flips;
-    const copy = [...flips];
-    copy.sort((a, b) => (col.getValue(a) - col.getValue(b)) * (sortDesc ? -1 : 1));
-    return copy.slice(0, 150);
-  }, [flips, activeColumns, activeSortKey, sortDesc]);
+    const sorted = [...matches];
+    if (col) {
+      sorted.sort((a, b) => (col.getValue(a) - col.getValue(b)) * (sortDesc ? -1 : 1));
+    }
+    // Pinned favorites float above everything, keeping their relative sort.
+    sorted.sort((a, b) => Number(favorites.has(b.itemId)) - Number(favorites.has(a.itemId)));
+    return sorted.slice(0, 150);
+  }, [flips, meta, search, activeColumns, activeSortKey, sortDesc, favorites]);
 
   function handleSort(key: string) {
     if (key === activeSortKey) {
@@ -43,8 +67,12 @@ export function FlipTable({ type, flips, meta, loading }: FlipTableProps) {
     return <div className="loading-state">fetching bazaar data...</div>;
   }
 
-  if (sorted.length === 0) {
-    return <div className="empty-state">no flips clear the margin/volume threshold right now</div>;
+  if (visible.length === 0) {
+    return (
+      <div className="empty-state">
+        {search ? "no items match your search" : "no flips clear the filters right now"}
+      </div>
+    );
   }
 
   return (
@@ -62,54 +90,20 @@ export function FlipTable({ type, flips, meta, loading }: FlipTableProps) {
                 {col.label} {col.key === activeSortKey ? (sortDesc ? "▼" : "▲") : ""}
               </th>
             ))}
+            {budget > 0 && <th title="realistic daily profit with your budget">Your/Day</th>}
           </tr>
         </thead>
         <tbody>
-          {sorted.map((flip) => (
-            <tr key={`${(flip as { direction?: string }).direction ?? flip.type}-${flip.itemId}`}>
-              <td>
-                <div className="item-cell">
-                  <span
-                    className="tier-strip"
-                    style={{ background: tierColor(meta.tiers[flip.itemId]) }}
-                  />
-                  <span className="item-icon-slot">
-                    {iconUrl(meta.materials[flip.itemId]) && (
-                      <img
-                        className="item-icon"
-                        src={iconUrl(meta.materials[flip.itemId])!}
-                        alt=""
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.style.visibility = "hidden";
-                        }}
-                      />
-                    )}
-                  </span>
-                  <span className="item-name">
-                    {meta.names[flip.itemId] ?? formatItemName(flip.itemId)}
-                  </span>
-                  {flip.suspicious && (
-                    <span
-                      className="manip-badge"
-                      title={`Price is ${flip.medianRatio?.toFixed(1)}x its 48h median — possible manipulation, avoid`}
-                    >
-                      ⚠ pumped
-                    </span>
-                  )}
-                </div>
-              </td>
-              {activeColumns.map((col) => (
-                <td
-                  key={col.key}
-                  className={
-                    col.emphasize ? "profit-positive" : col.key === "marginPercent" ? "margin-cell" : ""
-                  }
-                >
-                  {col.render(flip)}
-                </td>
-              ))}
-            </tr>
+          {visible.map((flip) => (
+            <FlipRow
+              key={`${(flip as { direction?: string }).direction ?? flip.type}-${flip.itemId}`}
+              flip={flip}
+              columns={activeColumns}
+              meta={meta}
+              budget={budget}
+              isFavorite={favorites.has(flip.itemId)}
+              onToggleFavorite={onToggleFavorite}
+            />
           ))}
         </tbody>
       </table>

@@ -26,8 +26,13 @@ export const MANIPULATION_RATIO = 2;
 // ~3 hours of samples before we trust the median enough to flag anything.
 export const MIN_HISTORY_SAMPLES = 36;
 
-// Real-activity floors, from the moving-week trade stats. Community guidance
-// (Coflnet guide) targets 10k+ units/day for spread flips; craft and NPC
-// flips tolerate slower markets since fills are one-sided.
-export const MIN_DAILY_TRADED_SPREAD = 10_000;
-export const MIN_DAILY_TRADED_OTHER = 1_000;
+// Real-activity floors measured in COINS moved per day, not units — a unit
+// floor unfairly cuts expensive items (7k Recombobulators/day is billions of
+// coins) while letting penny items through. Spread flips need a genuinely
+// busy market; craft/NPC tolerate slower ones since fills are one-sided.
+export const MIN_DAILY_COINS_SPREAD = 100_000_000;
+export const MIN_DAILY_COINS_OTHER = 250_000;
+
+// Budget planner: assume you capture only this share of an item's daily
+// trades — you're one of several flippers competing for the same fills.
+export const REALISTIC_FILL_SHARE = 0.1;

@@ -38,6 +38,8 @@ export interface ManipulationCheck {
 export interface TradeActivity {
   // Units actually traded per day (moving-week average from Hypixel).
   tradedPerDay: number;
+  // Coins moved per day (units x price) — the market-health filter metric.
+  coinsPerDay: number;
 }
 
 export interface SpreadFlip extends ManipulationCheck, TradeActivity {
