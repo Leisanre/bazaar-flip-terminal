@@ -302,6 +302,13 @@ tbody td {
   width: 110px;
 }
 
+.budget-readout {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--coin-gold);
+  white-space: nowrap;
+}
+
 .fav-button {
   appearance: none;
   background: transparent;

@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { formatCoins } from "../format.js";
+
 interface ToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
@@ -17,6 +20,19 @@ export function parseBudgetInput(raw: string): number {
 }
 
 export function Toolbar({ search, onSearchChange, budget, onBudgetChange }: ToolbarProps) {
+  const [budgetText, setBudgetText] = useState(budget > 0 ? formatCoins(budget) : "");
+
+  function handleBudgetChange(raw: string) {
+    setBudgetText(raw);
+    onBudgetChange(parseBudgetInput(raw));
+  }
+
+  // On leaving the field, rewrite whatever was typed into the compact
+  // k/m/b form so "10000000" reads back as "10.00m".
+  function handleBudgetBlur() {
+    if (budget > 0) setBudgetText(formatCoins(budget));
+  }
+
   return (
     <div className="toolbar">
       <input
@@ -32,9 +48,11 @@ export function Toolbar({ search, onSearchChange, budget, onBudgetChange }: Tool
           className="toolbar-input budget-input"
           type="text"
           placeholder="e.g. 10m"
-          defaultValue={budget > 0 ? String(budget) : ""}
-          onChange={(e) => onBudgetChange(parseBudgetInput(e.target.value))}
+          value={budgetText}
+          onChange={(e) => handleBudgetChange(e.target.value)}
+          onBlur={handleBudgetBlur}
         />
+        {budget > 0 && <span className="budget-readout">= {formatCoins(budget)} coins</span>}
       </div>
     </div>
   );
