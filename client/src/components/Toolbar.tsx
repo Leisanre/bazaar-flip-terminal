@@ -8,6 +8,8 @@ interface ToolbarProps {
   onBudgetChange: (value: number) => void;
   safeMode: boolean;
   onSafeModeChange: (value: boolean) => void;
+  greensOnly: boolean;
+  onGreensOnlyChange: (value: boolean) => void;
 }
 
 // Accepts "10m", "1.5b", "500k" or plain numbers.
@@ -28,6 +30,8 @@ export function Toolbar({
   onBudgetChange,
   safeMode,
   onSafeModeChange,
+  greensOnly,
+  onGreensOnlyChange,
 }: ToolbarProps) {
   const [budgetText, setBudgetText] = useState(budget > 0 ? formatCoins(budget) : "");
 
@@ -73,6 +77,17 @@ export function Toolbar({
           onChange={(e) => onSafeModeChange(e.target.checked)}
         />
         safe mode
+      </label>
+      <label
+        className="safe-toggle"
+        title="Spread tab: only show ✓ flip-it verdicts — zero caution flags. With your budget set, the top row is simply your best trade."
+      >
+        <input
+          type="checkbox"
+          checked={greensOnly}
+          onChange={(e) => onGreensOnlyChange(e.target.checked)}
+        />
+        greens only
       </label>
     </div>
   );

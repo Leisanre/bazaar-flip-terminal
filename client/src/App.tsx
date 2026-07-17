@@ -8,6 +8,7 @@ import { TradesPanel } from "./components/TradesPanel.js";
 const BUDGET_KEY = "bft-budget";
 const FAVORITES_KEY = "bft-favorites";
 const SAFE_MODE_KEY = "bft-safe-mode";
+const GREENS_ONLY_KEY = "bft-greens-only";
 
 function loadBudget(): number {
   const raw = Number(localStorage.getItem(BUDGET_KEY));
@@ -47,10 +48,16 @@ export default function App() {
   const [budget, setBudget] = useState(loadBudget);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
   const [safeMode, setSafeMode] = useState(localStorage.getItem(SAFE_MODE_KEY) !== "off");
+  const [greensOnly, setGreensOnly] = useState(localStorage.getItem(GREENS_ONLY_KEY) === "on");
 
   function handleSafeModeChange(value: boolean) {
     setSafeMode(value);
     localStorage.setItem(SAFE_MODE_KEY, value ? "on" : "off");
+  }
+
+  function handleGreensOnlyChange(value: boolean) {
+    setGreensOnly(value);
+    localStorage.setItem(GREENS_ONLY_KEY, value ? "on" : "off");
   }
 
   function handleBudgetChange(value: number) {
@@ -143,6 +150,8 @@ export default function App() {
               onBudgetChange={handleBudgetChange}
               safeMode={safeMode}
               onSafeModeChange={handleSafeModeChange}
+              greensOnly={greensOnly}
+              onGreensOnlyChange={handleGreensOnlyChange}
             />
             <FlipTable
               type={activeTab}
@@ -152,6 +161,7 @@ export default function App() {
               search={search}
               budget={budget}
               safeMode={safeMode}
+              greensOnly={greensOnly}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
             />

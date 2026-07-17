@@ -15,6 +15,7 @@ interface FlipTableProps {
   search: string;
   budget: number;
   safeMode: boolean;
+  greensOnly: boolean;
   favorites: Set<string>;
   onToggleFavorite: (itemId: string) => void;
 }
@@ -27,6 +28,7 @@ export function FlipTable({
   search,
   budget,
   safeMode,
+  greensOnly,
   favorites,
   onToggleFavorite,
 }: FlipTableProps) {
@@ -80,6 +82,11 @@ export function FlipTable({
       matches = matches.filter((f) => f.tradedPerDay >= SAFE_MODE_MIN_DAILY_TRADED);
     }
 
+    // Greens only (spread only): zero-caution-flag flips, nothing else.
+    if (greensOnly && type === "spread") {
+      matches = matches.filter((f) => (f as { verdict?: string }).verdict === "good");
+    }
+
     const col = activeColumns.find((c) => c.key === activeSortKey);
     const sorted = [...matches];
     if (col) {
@@ -98,7 +105,7 @@ export function FlipTable({
     // Pinned favorites float above everything, keeping their relative sort.
     sorted.sort((a, b) => Number(favorites.has(b.itemId)) - Number(favorites.has(a.itemId)));
     return sorted.slice(0, 150);
-  }, [flips, meta, search, budget, safeMode, type, activeColumns, activeSortKey, sortDesc, favorites]);
+  }, [flips, meta, search, budget, safeMode, greensOnly, type, activeColumns, activeSortKey, sortDesc, favorites]);
 
   function handleSort(key: string) {
     if (key === activeSortKey) {
