@@ -14,6 +14,10 @@ export interface BazaarProduct {
   sellMovingWeek: number;
   buyOrders: number;
   sellOrders: number;
+  // Units sitting at the best price on each side — a price backed by a
+  // tiny wall is fragile (the Phanpyre lesson).
+  buyWallUnits: number;
+  sellWallUnits: number;
 }
 
 export interface RecipeIngredient {
@@ -55,6 +59,8 @@ export interface SpreadFlip extends ManipulationCheck, TradeActivity {
   profitPerHour: number;
   // How lopsided the two flows are (1 = balanced; big = one dead lane).
   flowImbalance: number;
+  // Units backing the fragile side's best price.
+  priceWallUnits: number;
   verdict?: FlipVerdict;
   verdictReason?: string;
 }

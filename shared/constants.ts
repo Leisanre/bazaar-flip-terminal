@@ -48,6 +48,10 @@ export const VERDICT_MARGIN_SWEET_MAX = 30;
 export const VERDICT_RISKY_FLOW_IMBALANCE = 4;
 export const VERDICT_AVOID_FLOW_IMBALANCE = 10;
 
+// A best price backed by fewer units than one stack is fragile — it can
+// vanish or reprice before your order interacts with it.
+export const THIN_WALL_UNITS = 64;
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

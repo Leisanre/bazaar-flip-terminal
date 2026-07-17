@@ -133,7 +133,7 @@ export default function App() {
 
       <main className="content">
         {activeTab === "trades" ? (
-          <TradesPanel />
+          <TradesPanel spreadFlips={flipsByType.spread} meta={meta} budget={budget} />
         ) : (
           <>
             <Toolbar

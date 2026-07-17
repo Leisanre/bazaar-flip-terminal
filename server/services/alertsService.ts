@@ -23,15 +23,30 @@ export function realizedProfit(pos: TrackedPosition): number | null {
   return (pos.sellUnitPrice * (1 - tax) - pos.buyUnitPrice) * pos.amount;
 }
 
+const lastStatus = new Map<string, string>();
+
 function checkPositions(): void {
   for (const pos of getPositions()) {
     const key = pos.id;
+    const prev = lastStatus.get(key);
+    lastStatus.set(key, pos.status);
+
+    // The most actionable moment in flipping: buy filled, coins are dead
+    // until the sell offer goes up. Mention so the phone buzzes.
+    if (prev === "waiting_fill" && pos.status === "holding") {
+      sendDiscordAlert(
+        `✅ **Buy filled** — ${pos.itemName} x${pos.amount} at ${fmt(pos.buyUnitPrice)}. ` +
+          `Place your sell offer now (current lowest offer: ${fmt(pos.currentLowestSellOffer ?? 0)} — undercut by 0.1).`,
+        true
+      );
+    }
 
     if (pos.status === "waiting_fill" && pos.outbid && alerted.get(key) !== "outbid") {
       alerted.set(key, "outbid");
       sendDiscordAlert(
         `⚠ **Outbid** — ${pos.itemName} x${pos.amount}: your buy order at ${fmt(pos.buyUnitPrice)} ` +
-          `is below the top (${fmt(pos.currentTopBuyOrder ?? 0)}). Bump it or wait.`
+          `is below the top (${fmt(pos.currentTopBuyOrder ?? 0)}). Bump it or wait.`,
+        true
       );
     }
 
@@ -44,7 +59,8 @@ function checkPositions(): void {
       alerted.set(key, "drift");
       sendDiscordAlert(
         `📉 **Exit slipping** — ${pos.itemName} x${pos.amount}: sell price fell ` +
-          `${Math.abs(pos.exitDriftPercent).toFixed(0)}% below your plan. Consider getting out.`
+          `${Math.abs(pos.exitDriftPercent).toFixed(0)}% below your plan. Consider getting out.`,
+        true
       );
     }
 
@@ -63,9 +79,10 @@ function checkPositions(): void {
 }
 
 export function startAlerts(): void {
-  // Seed the dedupe map so a restart doesn't re-announce old history.
+  // Seed dedupe + status maps so a restart doesn't re-announce old history.
   for (const pos of getPositions()) {
     if (pos.status === "closed") alerted.set(pos.id, "closed");
+    lastStatus.set(pos.id, pos.status);
   }
   setInterval(checkPositions, CHECK_INTERVAL_MS);
 }

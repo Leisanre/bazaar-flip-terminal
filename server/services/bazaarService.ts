@@ -39,6 +39,8 @@ function toBazaarProduct(raw: RawBazaarResponse["products"][string]): BazaarProd
     productId: raw.product_id,
     buyPrice: topBuy ?? raw.quick_status.buyPrice,
     sellPrice: topSell ?? raw.quick_status.sellPrice,
+    buyWallUnits: raw.buy_summary[0]?.amount ?? 0,
+    sellWallUnits: raw.sell_summary[0]?.amount ?? 0,
     buyVolume: raw.quick_status.buyVolume,
     sellVolume: raw.quick_status.sellVolume,
     buyMovingWeek: raw.quick_status.buyMovingWeek,

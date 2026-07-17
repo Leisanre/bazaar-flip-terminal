@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import type { TrackedPosition } from "../../../shared/positions.js";
+import type { FlipOpportunity } from "../../../shared/types.js";
 import { formatCoins } from "../format.js";
 import { realizedProfit, summarizeProfit } from "../profit.js";
+import { ActionPanel } from "./ActionPanel.js";
+import type { ItemMeta } from "../api.js";
 
 const POLL_MS = 10_000;
 
@@ -26,7 +29,13 @@ function warningFor(pos: TrackedPosition): string | null {
   return null;
 }
 
-export function TradesPanel() {
+interface TradesPanelProps {
+  spreadFlips: FlipOpportunity[];
+  meta: ItemMeta;
+  budget: number;
+}
+
+export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
   const [positions, setPositions] = useState<TrackedPosition[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -70,6 +79,7 @@ export function TradesPanel() {
 
   return (
     <>
+      <ActionPanel positions={positions} spreadFlips={spreadFlips} meta={meta} budget={budget} />
       <div className="stats-bar">
         <div className="stat-block">
           <span className="stat-label">today</span>

@@ -11,6 +11,7 @@ import {
   VERDICT_MARGIN_SWEET_MAX,
   VERDICT_RISKY_FLOW_IMBALANCE,
   VERDICT_AVOID_FLOW_IMBALANCE,
+  THIN_WALL_UNITS,
 } from "../../shared/constants.js";
 import type { BazaarProduct, CraftFlip, ItemRecipe, NpcFlip, SpreadFlip } from "../../shared/types.js";
 
@@ -65,6 +66,7 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
     tradedPerDay,
     coinsPerDay,
     flowImbalance: slowerSideWeekly > 0 ? fasterSideWeekly / slowerSideWeekly : Infinity,
+    priceWallUnits: Math.min(product.buyWallUnits, product.sellWallUnits),
   };
 }
 
@@ -98,6 +100,12 @@ export function attachVerdict(flip: SpreadFlip): SpreadFlip {
     if (flip.flowImbalance > VERDICT_RISKY_FLOW_IMBALANCE) {
       verdict = "risky";
       reasons.push(`${flip.flowImbalance.toFixed(0)}x flow imbalance — one lane is slow`);
+    }
+    if (flip.priceWallUnits < THIN_WALL_UNITS) {
+      verdict = "risky";
+      reasons.push(
+        `best price backed by only ${flip.priceWallUnits} units — fragile, may vanish`
+      );
     }
   }
 
