@@ -54,10 +54,18 @@ export function getLinkedPlayers(): string[] {
 }
 
 // mentionPlayer: the in-game name the alert concerns — if that player is
-// linked, they get a real @mention so their phone buzzes.
+// linked (any capitalization), they get a real @mention so their phone buzzes.
+function lookupDiscordId(player: string): string | undefined {
+  const lower = player.toLowerCase();
+  for (const [name, id] of Object.entries(discordUsers)) {
+    if (name.toLowerCase() === lower) return id;
+  }
+  return discordUsers["*"];
+}
+
 export function sendDiscordAlert(message: string, mentionPlayer?: string): void {
   if (!webhookUrl) return;
-  const id = mentionPlayer ? discordUsers[mentionPlayer] ?? discordUsers["*"] : undefined;
+  const id = mentionPlayer ? lookupDiscordId(mentionPlayer) : undefined;
   const content = id ? `<@${id}> ${message}` : message;
   fetch(webhookUrl, {
     method: "POST",
