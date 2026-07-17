@@ -62,6 +62,10 @@ export function getHistorySampleCount(itemId: string): number {
   return history.get(itemId)?.length ?? 0;
 }
 
+export function getHistorySamples(itemId: string): number[] {
+  return history.get(itemId) ?? [];
+}
+
 export function startPriceHistoryTracking(): void {
   void loadFromStore();
   // First sample shortly after boot so a fresh install starts warming up

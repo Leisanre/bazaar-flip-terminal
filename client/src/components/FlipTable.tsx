@@ -3,7 +3,7 @@ import type { FlipOpportunity, FlipType } from "../../../shared/types.js";
 import { getColumnsForType, type ColumnDef } from "../columns.js";
 import { formatItemName, formatCoins } from "../format.js";
 import type { ItemMeta } from "../api.js";
-import { yourProfitPerDay } from "../budget.js";
+import { yourProfitPerDay, estimatedFillMinutes, formatFillTime } from "../budget.js";
 import { SAFE_MODE_MIN_DAILY_TRADED } from "../../../shared/constants.js";
 import { FlipRow } from "./FlipRow.js";
 
@@ -44,6 +44,12 @@ export function FlipTable({
         getValue: (f) => yourProfitPerDay(f, budget),
         render: (f) => formatCoins(yourProfitPerDay(f, budget)),
         emphasize: true,
+      },
+      {
+        key: "fillTime",
+        label: "Est Fill",
+        getValue: (f) => estimatedFillMinutes(f, budget) ?? Infinity,
+        render: (f) => formatFillTime(estimatedFillMinutes(f, budget)),
       },
     ];
   }, [type, budget]);

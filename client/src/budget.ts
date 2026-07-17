@@ -22,3 +22,22 @@ export function yourProfitPerDay(flip: FlipOpportunity, budget: number): number 
 
   return Math.min(unitsAffordable, unitsFillable) * flip.profitPerUnit;
 }
+
+// "If I put my whole budget in, how long until the buy side fills?"
+// Order size / your realistic share of the hourly flow.
+export function estimatedFillMinutes(flip: FlipOpportunity, budget: number): number | null {
+  const cost = costPerUnit(flip);
+  if (budget <= 0 || cost <= 0 || flip.tradedPerDay <= 0) return null;
+  const units = Math.floor(budget / cost);
+  if (units === 0) return null;
+  const unitsPerMinute = (flip.tradedPerDay * REALISTIC_FILL_SHARE) / (24 * 60);
+  return units / unitsPerMinute;
+}
+
+export function formatFillTime(minutes: number | null): string {
+  if (minutes === null) return "—";
+  if (minutes < 1) return "<1 min";
+  if (minutes < 60) return `~${Math.round(minutes)} min`;
+  if (minutes < 24 * 60) return `~${(minutes / 60).toFixed(1)} hr`;
+  return "1 day+";
+}

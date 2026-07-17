@@ -93,6 +93,7 @@ export function applyEvent(event: BazaarEvent): void {
     if (pos) {
       pos.status = "closed";
       pos.closedAt = timestamp;
+      pos.closedBy = kind === "npc_sell" ? "npc" : "bazaar";
       if (kind !== "sell_offer_filled" && amount && totalCoins) {
         pos.sellUnitPrice = totalCoins / amount;
       }

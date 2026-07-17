@@ -32,6 +32,8 @@ export interface TrackedPosition {
   status: PositionStatus;
   openedAt: number;
   closedAt?: number;
+  // How the position exited: NPC sells are untaxed, bazaar sells pay 1.25%.
+  closedBy?: "bazaar" | "npc";
   // Live market comparison, computed on read:
   outbid?: boolean;
   currentTopBuyOrder?: number;

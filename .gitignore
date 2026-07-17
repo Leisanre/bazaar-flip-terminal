@@ -2,6 +2,7 @@ node_modules/
 dist-client/
 dist-server/
 data-cache/
+server-config.json
 .env
 *.log
 

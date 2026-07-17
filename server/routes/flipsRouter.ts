@@ -27,7 +27,11 @@ flipsRouter.get("/spread", (_req, res) => {
       return flip ? attachVerdict(withManipulationCheck(flip, product)) : null;
     })
     .filter((f): f is NonNullable<typeof f> => f !== null)
-    .sort((a, b) => b.profitPerHour - a.profitPerHour);
+    .sort((a, b) => {
+      const rank = { good: 2, risky: 1, avoid: 0 } as const;
+      const byVerdict = rank[b.verdict ?? "risky"] - rank[a.verdict ?? "risky"];
+      return byVerdict !== 0 ? byVerdict : b.profitPerHour - a.profitPerHour;
+    });
   res.json({ lastUpdated: getBazaarLastUpdated(), flips });
 });
 

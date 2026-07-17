@@ -387,6 +387,68 @@ tbody td {
   white-space: normal;
 }
 
+.stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  border: 0.5px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-surface-100);
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-value.gain {
+  color: var(--gain-green);
+}
+
+.stat-value.loss {
+  color: var(--loss-red);
+}
+
+.loss-cell {
+  color: var(--loss-red);
+  font-weight: 600;
+}
+
+.spark-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+}
+
+.spark-svg {
+  max-width: 100%;
+}
+
+.spark-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
 .row-closed td {
   color: var(--text-muted);
 }

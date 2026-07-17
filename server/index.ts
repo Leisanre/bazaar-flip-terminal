@@ -11,6 +11,8 @@ import { metaRouter } from "./routes/metaRouter.js";
 import { positionsRouter } from "./routes/positionsRouter.js";
 import { loadPositions } from "./services/positionsService.js";
 import { initKvStore } from "./services/kvStore.js";
+import { initDiscord } from "./services/discordService.js";
+import { startAlerts } from "./services/alertsService.js";
 
 const PORT = process.env.PORT ?? 4000;
 
@@ -22,6 +24,8 @@ app.use("/api/positions", positionsRouter);
 
 await initKvStore();
 await loadPositions();
+initDiscord();
+startAlerts();
 
 // In production the API server also serves the built dashboard, so one
 // hosted URL covers everything. In dev, vite serves the client separately.

@@ -3,6 +3,7 @@ import type { FlipOpportunity } from "../../../shared/types.js";
 import type { ColumnDef } from "../columns.js";
 import type { ItemMeta } from "../api.js";
 import { formatCoins, formatItemName, tierColor, iconUrl } from "../format.js";
+import { Sparkline } from "./Sparkline.js";
 
 interface FlipRowProps {
   flip: FlipOpportunity;
@@ -32,10 +33,7 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
 
   return (
     <>
-      <tr
-        className={isCraft ? "row-expandable" : ""}
-        onClick={isCraft ? () => setExpanded((v) => !v) : undefined}
-      >
+      <tr className="row-expandable" onClick={() => setExpanded((v) => !v)}>
         <td>
           <div className="item-cell">
             <button
@@ -63,7 +61,7 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
               )}
             </span>
             <span className="item-name">{displayName}</span>
-            {isCraft && <span className="expand-hint">{expanded ? "▾" : "▸"}</span>}
+            <span className="expand-hint">{expanded ? "▾" : "▸"}</span>
             {flip.suspicious && (
               <span
                 className="manip-badge"
@@ -109,20 +107,23 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
           );
         })}
       </tr>
-      {isCraft && expanded && flip.type === "craft" && (
+      {expanded && (
         <tr className="ingredient-row">
           <td colSpan={columns.length + 1}>
-            <div className="ingredient-list">
-              buy:{" "}
-              {flip.ingredients
-                .map(
-                  (ing) =>
-                    `${ing.count}x ${meta.names[ing.itemId] ?? formatItemName(ing.itemId)}`
-                )
-                .join("  •  ")}
-              {"  →  "}total cost {formatCoins(flip.craftCost)}, craft, then sell-order at{" "}
-              {formatCoins(flip.sellPrice)}
-            </div>
+            {isCraft && flip.type === "craft" && (
+              <div className="ingredient-list">
+                buy:{" "}
+                {flip.ingredients
+                  .map(
+                    (ing) =>
+                      `${ing.count}x ${meta.names[ing.itemId] ?? formatItemName(ing.itemId)}`
+                  )
+                  .join("  •  ")}
+                {"  →  "}total cost {formatCoins(flip.craftCost)}, craft, then sell-order at{" "}
+                {formatCoins(flip.sellPrice)}
+              </div>
+            )}
+            <Sparkline itemId={flip.itemId} />
           </td>
         </tr>
       )}
