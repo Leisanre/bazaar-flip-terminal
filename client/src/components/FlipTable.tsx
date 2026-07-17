@@ -85,6 +85,16 @@ export function FlipTable({
     if (col) {
       sorted.sort((a, b) => (col.getValue(a) - col.getValue(b)) * (sortDesc ? -1 : 1));
     }
+    // Green verdicts always outrank yellow/red within any sort — the safest
+    // flips should never be buried by a metric column.
+    if (type === "spread" && activeSortKey !== "verdict") {
+      const rank: Record<string, number> = { good: 2, risky: 1, avoid: 0 };
+      sorted.sort(
+        (a, b) =>
+          (rank[(b as { verdict?: string }).verdict ?? "risky"] ?? 1) -
+          (rank[(a as { verdict?: string }).verdict ?? "risky"] ?? 1)
+      );
+    }
     // Pinned favorites float above everything, keeping their relative sort.
     sorted.sort((a, b) => Number(favorites.has(b.itemId)) - Number(favorites.has(a.itemId)));
     return sorted.slice(0, 150);
