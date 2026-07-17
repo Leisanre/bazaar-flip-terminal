@@ -80,9 +80,17 @@ function checkPositions(): void {
 }
 
 export function startAlerts(): void {
-  // Seed dedupe + status maps so a restart doesn't re-announce old history.
+  // Seed dedupe + status maps so a restart doesn't re-announce anything the
+  // user has already been told — only NEW state changes fire after boot.
   for (const pos of getPositions()) {
     if (pos.status === "closed") alerted.set(pos.id, "closed");
+    else if (pos.status === "waiting_fill" && pos.outbid) alerted.set(pos.id, "outbid");
+    else if (
+      (pos.status === "holding" || pos.status === "selling") &&
+      (pos.exitDriftPercent ?? 0) < EXIT_DRIFT_ALERT_PERCENT
+    ) {
+      alerted.set(pos.id, "drift");
+    }
     lastStatus.set(pos.id, pos.status);
   }
   setInterval(checkPositions, CHECK_INTERVAL_MS);
