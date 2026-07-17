@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "fs";
 import path from "path";
+import { kvGet, kvSet } from "./kvStore.js";
 
 // Webhook URL comes from env (hosted) or server-config.json (local,
 // gitignored). Player→Discord links live in the config's discordUsers map:
@@ -8,7 +9,7 @@ import path from "path";
 let webhookUrl: string | null = null;
 let discordUsers: Record<string, string> = {};
 
-export function initDiscord(): void {
+export async function initDiscord(): Promise<void> {
   webhookUrl = process.env.DISCORD_WEBHOOK_URL ?? null;
   if (process.env.DISCORD_USERS) {
     try {
@@ -29,12 +30,27 @@ export function initDiscord(): void {
       console.error("server-config.json unreadable", err);
     }
   }
+  // Links created through the website (kv-persisted) round out the map.
+  const saved = await kvGet<Record<string, string>>("discord-links");
+  if (saved) discordUsers = { ...discordUsers, ...saved };
+
   const linked = Object.keys(discordUsers).filter((k) => k !== "*");
   console.log(
     webhookUrl
       ? `discord alerts: enabled (${linked.length} player(s) linked)`
       : "discord alerts: no webhook configured"
   );
+}
+
+export async function setDiscordLink(player: string, discordId: string): Promise<void> {
+  discordUsers[player] = discordId;
+  const saved = (await kvGet<Record<string, string>>("discord-links")) ?? {};
+  saved[player] = discordId;
+  await kvSet("discord-links", saved);
+}
+
+export function getLinkedPlayers(): string[] {
+  return Object.keys(discordUsers).filter((k) => k !== "*");
 }
 
 // mentionPlayer: the in-game name the alert concerns — if that player is

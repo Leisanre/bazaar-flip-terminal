@@ -4,6 +4,7 @@ import type { FlipOpportunity } from "../../../shared/types.js";
 import { formatCoins } from "../format.js";
 import { realizedProfit, summarizeProfit } from "../profit.js";
 import { ActionPanel } from "./ActionPanel.js";
+import { DiscordLink } from "./DiscordLink.js";
 import type { ItemMeta } from "../api.js";
 
 const POLL_MS = 10_000;
@@ -66,10 +67,13 @@ export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
 
   if (positions.length === 0) {
     return (
-      <div className="empty-state">
-        no tracked trades yet — run the BazaarFlip mod while playing and your orders appear here
-        automatically
-      </div>
+      <>
+        <DiscordLink />
+        <div className="empty-state">
+          no tracked trades yet — run the BazaarFlip mod while playing and your orders appear here
+          automatically
+        </div>
+      </>
     );
   }
 
@@ -80,6 +84,7 @@ export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
   return (
     <>
       <ActionPanel positions={positions} spreadFlips={spreadFlips} meta={meta} budget={budget} />
+      <DiscordLink />
       <div className="stats-bar">
         <div className="stat-block">
           <span className="stat-label">today</span>

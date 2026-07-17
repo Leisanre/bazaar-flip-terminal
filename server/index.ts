@@ -9,6 +9,7 @@ import { startPriceHistoryTracking } from "./services/priceHistoryService.js";
 import { flipsRouter } from "./routes/flipsRouter.js";
 import { metaRouter } from "./routes/metaRouter.js";
 import { positionsRouter } from "./routes/positionsRouter.js";
+import { settingsRouter } from "./routes/settingsRouter.js";
 import { loadPositions } from "./services/positionsService.js";
 import { initKvStore } from "./services/kvStore.js";
 import { initDiscord } from "./services/discordService.js";
@@ -21,10 +22,11 @@ app.use(cors());
 app.use("/api/flips", flipsRouter);
 app.use("/api/meta", metaRouter);
 app.use("/api/positions", positionsRouter);
+app.use("/api/settings", settingsRouter);
 
 await initKvStore();
 await loadPositions();
-initDiscord();
+await initDiscord();
 startAlerts();
 
 // In production the API server also serves the built dashboard, so one
