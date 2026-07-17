@@ -62,10 +62,14 @@ function checkPositions(): void {
       alerted.set(key, "closed");
       const profit = realizedProfit(pos);
       if (profit !== null) {
-        const sign = profit >= 0 ? "💰 **+" : "🔻 **";
+        const spent = pos.buyUnitPrice * pos.amount;
+        const marginPct = spent > 0 ? (profit / spent) * 100 : 0;
+        const emoji = profit >= 0 ? "💰" : "🔻";
+        const signed = `${profit >= 0 ? "+" : ""}${fmt(profit)}`;
         sendDiscordAlert(
-          `${sign}${fmt(profit)}** — ${pos.itemName} x${pos.amount} closed ` +
-            `(${fmt(pos.buyUnitPrice)} → ${fmt(pos.sellUnitPrice ?? 0)}${pos.closedBy === "npc" ? ", NPC" : ""}).`
+          `${emoji} **${signed} coins (${marginPct >= 0 ? "+" : ""}${marginPct.toFixed(1)}%)** — ` +
+            `${pos.itemName} x${pos.amount}${pos.closedBy === "npc" ? " → NPC" : ""}\n` +
+            `> spent ${fmt(spent)} (${fmt(pos.buyUnitPrice)}/u) → got back ${fmt(spent + profit)} (${fmt(pos.sellUnitPrice ?? 0)}/u)`
         );
       }
     }
