@@ -1,6 +1,6 @@
 import { Router, json } from "express";
 import { parseBazaarLine } from "../services/bazaarChatParser.js";
-import { applyEvent, getPositions } from "../services/positionsService.js";
+import { applyEvent, getPositions, dismissPosition } from "../services/positionsService.js";
 
 export const positionsRouter = Router();
 positionsRouter.use(json());
@@ -22,4 +22,13 @@ positionsRouter.post("/events", (req, res) => {
 
 positionsRouter.get("/", (_req, res) => {
   res.json({ positions: getPositions() });
+});
+
+positionsRouter.delete("/:id", (req, res) => {
+  const removed = dismissPosition(req.params.id);
+  if (!removed) {
+    res.status(404).json({ error: "position not found" });
+    return;
+  }
+  res.json({ ok: true });
 });

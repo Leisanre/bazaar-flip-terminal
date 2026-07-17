@@ -63,6 +63,15 @@ export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
     };
   }, []);
 
+  async function dismiss(id: string) {
+    try {
+      const res = await fetch(`/api/positions/${id}`, { method: "DELETE" });
+      if (res.ok) setPositions((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("dismiss failed", err);
+    }
+  }
+
   if (!loaded) return <div className="loading-state">loading your trades...</div>;
 
   if (positions.length === 0) {
@@ -133,6 +142,7 @@ export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
             <th>Profit</th>
             <th>Status</th>
             <th>Alert</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -153,6 +163,15 @@ export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
                 </td>
                 <td>{STATUS_LABEL[pos.status]}</td>
                 <td>{warning ? <span className="manip-badge">⚠ {warning}</span> : "—"}</td>
+                <td>
+                  <button
+                    className="dismiss-button"
+                    title="remove from tracking (does not touch your in-game order)"
+                    onClick={() => dismiss(pos.id)}
+                  >
+                    ✕
+                  </button>
+                </td>
               </tr>
             );
           })}

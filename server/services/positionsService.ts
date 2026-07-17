@@ -111,6 +111,14 @@ export function applyEvent(event: BazaarEvent): void {
   persist();
 }
 
+export function dismissPosition(id: string): boolean {
+  const index = positions.findIndex((p) => p.id === id);
+  if (index === -1) return false;
+  positions.splice(index, 1);
+  persist();
+  return true;
+}
+
 export function getPositions(): TrackedPosition[] {
   const byId = new Map(getBazaarProducts().map((p) => [p.productId, p]));
   return positions.map((pos) => {

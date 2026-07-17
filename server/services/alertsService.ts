@@ -13,8 +13,9 @@ const alerted = new Map<string, string>();
 function fmt(n: number): string {
   const abs = Math.abs(n);
   if (abs >= 1e6) return (n / 1e6).toFixed(2) + "m";
-  if (abs >= 1e3) return (n / 1e3).toFixed(1) + "k";
-  return n.toFixed(1);
+  // Prices need exact decimals — outbid margins are 0.1-coin battles, and
+  // rounding 1456.2 vs 1456.3 both to "1.5k" makes alerts read as nonsense.
+  return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
 export function realizedProfit(pos: TrackedPosition): number | null {
