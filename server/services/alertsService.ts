@@ -37,7 +37,7 @@ function checkPositions(): void {
       sendDiscordAlert(
         `✅ **Buy filled** — ${pos.itemName} x${pos.amount} at ${fmt(pos.buyUnitPrice)}. ` +
           `Place your sell offer now (current lowest offer: ${fmt(pos.currentLowestSellOffer ?? 0)} — undercut by 0.1).`,
-        true
+        pos.player
       );
     }
 
@@ -46,7 +46,7 @@ function checkPositions(): void {
       sendDiscordAlert(
         `⚠ **Outbid** — ${pos.itemName} x${pos.amount}: your buy order at ${fmt(pos.buyUnitPrice)} ` +
           `is below the top (${fmt(pos.currentTopBuyOrder ?? 0)}). Bump it or wait.`,
-        true
+        pos.player
       );
     }
 
@@ -60,7 +60,7 @@ function checkPositions(): void {
       sendDiscordAlert(
         `📉 **Exit slipping** — ${pos.itemName} x${pos.amount}: sell price fell ` +
           `${Math.abs(pos.exitDriftPercent).toFixed(0)}% below your plan. Consider getting out.`,
-        true
+        pos.player
       );
     }
 
