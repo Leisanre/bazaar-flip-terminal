@@ -1,5 +1,6 @@
 import { Router, json } from "express";
 import { setDiscordLink, getLinkedPlayers, sendDiscordAlert } from "../services/discordService.js";
+import { buildReport } from "../services/reportService.js";
 
 export const settingsRouter = Router();
 settingsRouter.use(json());
@@ -20,5 +21,11 @@ settingsRouter.post("/discord-link", async (req, res) => {
   }
   await setDiscordLink(player.trim(), discordId.trim());
   sendDiscordAlert(`🔗 Linked **${player.trim()}** — this ping confirms it works.`, player.trim());
+  res.json({ ok: true });
+});
+
+// On-demand brag: fires the daily report right now.
+settingsRouter.post("/send-report", (_req, res) => {
+  sendDiscordAlert(buildReport());
   res.json({ ok: true });
 });

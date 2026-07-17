@@ -121,6 +121,10 @@ export function TradesPanel({ spreadFlips, meta, budget }: TradesPanelProps) {
           <span className="stat-label">coins in open trades</span>
           <span className="stat-value">{formatCoins(stats.openExposure)}</span>
         </div>
+        <div className="stat-block">
+          <span className="stat-label">coins cycled</span>
+          <span className="stat-value">{formatCoins(stats.coinsCycled)}</span>
+        </div>
         {stats.bestItem && (
           <div className="stat-block">
             <span className="stat-label">best earner</span>

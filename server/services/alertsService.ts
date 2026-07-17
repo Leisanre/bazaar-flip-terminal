@@ -1,7 +1,6 @@
-import { BAZAAR_TAX_RATE } from "../../shared/constants.js";
-import type { TrackedPosition } from "../../shared/positions.js";
 import { getPositions } from "./positionsService.js";
 import { sendDiscordAlert } from "./discordService.js";
+import { realizedProfit } from "../../shared/profitSummary.js";
 
 const CHECK_INTERVAL_MS = 60_000;
 const EXIT_DRIFT_ALERT_PERCENT = -5;
@@ -16,12 +15,6 @@ function fmt(n: number): string {
   // Prices need exact decimals — outbid margins are 0.1-coin battles, and
   // rounding 1456.2 vs 1456.3 both to "1.5k" makes alerts read as nonsense.
   return n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-}
-
-export function realizedProfit(pos: TrackedPosition): number | null {
-  if (pos.status !== "closed" || pos.sellUnitPrice === undefined) return null;
-  const tax = pos.closedBy === "npc" ? 0 : BAZAAR_TAX_RATE;
-  return (pos.sellUnitPrice * (1 - tax) - pos.buyUnitPrice) * pos.amount;
 }
 
 const lastStatus = new Map<string, string>();
