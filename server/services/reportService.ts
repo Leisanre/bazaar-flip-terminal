@@ -14,14 +14,18 @@ function fmt(n: number): string {
   return n.toFixed(0);
 }
 
-export function buildReport(): string {
-  const stats = summarizeProfit(getPositions());
+export function getTrackedPlayers(): string[] {
+  return [...new Set(getPositions().map((p) => p.player))];
+}
+
+export function buildReport(player: string): string {
+  const stats = summarizeProfit(getPositions().filter((p) => p.player === player));
   const winRate =
     stats.closedCount > 0 ? Math.round((stats.winCount / stats.closedCount) * 100) : 0;
   const sign = stats.todayProfit >= 0 ? "+" : "";
 
   return [
-    `📊 **Daily Flip Report**`,
+    `📊 **Daily Flip Report — ${player}**`,
     ``,
     `💰 Today: **${sign}${fmt(stats.todayProfit)} coins** (${stats.todayClosedCount} flips closed)`,
     `🏦 All time: **${stats.allTimeProfit >= 0 ? "+" : ""}${fmt(stats.allTimeProfit)} coins** over ${stats.closedCount} flips`,
@@ -43,7 +47,9 @@ async function maybeSendReport(): Promise<void> {
   const lastSent = await kvGet<string>("last-report-date");
   if (lastSent === today) return;
   await kvSet("last-report-date", today);
-  sendDiscordAlert(buildReport());
+  for (const player of getTrackedPlayers()) {
+    sendDiscordAlert(buildReport(player), player);
+  }
 }
 
 export function startDailyReport(): void {

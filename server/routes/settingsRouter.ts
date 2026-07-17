@@ -1,6 +1,6 @@
 import { Router, json } from "express";
 import { setDiscordLink, getLinkedPlayers, sendDiscordAlert } from "../services/discordService.js";
-import { buildReport } from "../services/reportService.js";
+import { buildReport, getTrackedPlayers } from "../services/reportService.js";
 
 export const settingsRouter = Router();
 settingsRouter.use(json());
@@ -24,8 +24,10 @@ settingsRouter.post("/discord-link", async (req, res) => {
   res.json({ ok: true });
 });
 
-// On-demand brag: fires the daily report right now.
+// On-demand brag: fires the daily report right now, one per tracked player.
 settingsRouter.post("/send-report", (_req, res) => {
-  sendDiscordAlert(buildReport());
+  for (const player of getTrackedPlayers()) {
+    sendDiscordAlert(buildReport(player), player);
+  }
   res.json({ ok: true });
 });

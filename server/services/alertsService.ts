@@ -44,6 +44,15 @@ function checkPositions(): void {
       );
     }
 
+    if (pos.status === "selling" && pos.undercut && alerted.get(key) !== "undercut") {
+      alerted.set(key, "undercut");
+      sendDiscordAlert(
+        `⚠ **Undercut** — ${pos.itemName} x${pos.amount}: your sell offer at ${fmt(pos.sellUnitPrice ?? 0)} ` +
+          `is above the lowest (${fmt(pos.currentLowestSellOffer ?? 0)}). Undercut back or wait out their stock.`,
+        pos.player
+      );
+    }
+
     if (
       (pos.status === "holding" || pos.status === "selling") &&
       pos.exitDriftPercent !== undefined &&
@@ -67,7 +76,7 @@ function checkPositions(): void {
         const emoji = profit >= 0 ? "💰" : "🔻";
         const signed = `${profit >= 0 ? "+" : ""}${fmt(profit)}`;
         sendDiscordAlert(
-          `${emoji} **${signed} coins (${marginPct >= 0 ? "+" : ""}${marginPct.toFixed(1)}%)** — ` +
+          `${emoji} **${pos.player}: ${signed} coins (${marginPct >= 0 ? "+" : ""}${marginPct.toFixed(1)}%)** — ` +
             `${pos.itemName} x${pos.amount}${pos.closedBy === "npc" ? " → NPC" : ""}\n` +
             `> spent ${fmt(spent)} (${fmt(pos.buyUnitPrice)}/u) → got back ${fmt(spent + profit)} (${fmt(pos.sellUnitPrice ?? 0)}/u)`
         );
@@ -82,6 +91,7 @@ export function startAlerts(): void {
   for (const pos of getPositions()) {
     if (pos.status === "closed") alerted.set(pos.id, "closed");
     else if (pos.status === "waiting_fill" && pos.outbid) alerted.set(pos.id, "outbid");
+    else if (pos.status === "selling" && pos.undercut) alerted.set(pos.id, "undercut");
     else if (
       (pos.status === "holding" || pos.status === "selling") &&
       (pos.exitDriftPercent ?? 0) < EXIT_DRIFT_ALERT_PERCENT

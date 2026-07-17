@@ -36,6 +36,7 @@ export interface TrackedPosition {
   closedBy?: "bazaar" | "npc";
   // Live market comparison, computed on read:
   outbid?: boolean;
+  undercut?: boolean;
   currentTopBuyOrder?: number;
   currentLowestSellOffer?: number;
   exitDriftPercent?: number;

@@ -41,8 +41,16 @@ function buildActions(
         urgent: true,
       });
     }
+    if (pos.status === "selling" && pos.undercut) {
+      actions.push({
+        key: `undercut-${pos.id}`,
+        text: `Undercut back: ${pos.itemName} — reprice your sell offer to ${formatCoins((pos.currentLowestSellOffer ?? 0) - 0.1)}`,
+        urgent: true,
+      });
+    }
     if (
       pos.status === "selling" &&
+      !pos.undercut &&
       pos.exitDriftPercent !== undefined &&
       pos.exitDriftPercent < -5
     ) {

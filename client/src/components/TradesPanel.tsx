@@ -20,6 +20,9 @@ function warningFor(pos: TrackedPosition): string | null {
   if (pos.status === "waiting_fill" && pos.outbid) {
     return `outbid — top buy order is now ${formatCoins(pos.currentTopBuyOrder ?? 0)}`;
   }
+  if (pos.status === "selling" && pos.undercut) {
+    return `undercut — lowest sell offer is now ${formatCoins(pos.currentLowestSellOffer ?? 0)}`;
+  }
   if (
     (pos.status === "holding" || pos.status === "selling") &&
     pos.exitDriftPercent !== undefined &&

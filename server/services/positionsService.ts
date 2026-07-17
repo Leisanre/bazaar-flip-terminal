@@ -133,6 +133,11 @@ export function getPositions(): TrackedPosition[] {
     if (pos.status === "waiting_fill") {
       enriched.outbid = product.sellPrice > pos.buyUnitPrice + 0.05;
     }
+    if (pos.status === "selling" && pos.sellUnitPrice !== undefined) {
+      // Someone listed a sell offer below yours — your exit is stalled
+      // until their stock clears or you undercut back.
+      enriched.undercut = product.buyPrice < pos.sellUnitPrice - 0.05;
+    }
     if (pos.status === "holding" || pos.status === "selling") {
       const plannedExit = pos.sellUnitPrice ?? product.buyPrice;
       enriched.exitDriftPercent = ((product.buyPrice - plannedExit) / plannedExit) * 100;
