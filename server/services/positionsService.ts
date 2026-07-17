@@ -85,12 +85,17 @@ export function applyEvent(event: BazaarEvent): void {
       pos.status = "selling";
       pos.sellUnitPrice = totalCoins / amount;
     }
-  } else if ((kind === "sell_offer_filled" || kind === "insta_sell") && itemName) {
+  } else if (
+    (kind === "sell_offer_filled" || kind === "insta_sell" || kind === "npc_sell") &&
+    itemName
+  ) {
     const pos = findOpen(player, itemName, "selling") ?? findOpen(player, itemName, "holding");
     if (pos) {
       pos.status = "closed";
       pos.closedAt = timestamp;
-      if (kind === "insta_sell" && amount && totalCoins) pos.sellUnitPrice = totalCoins / amount;
+      if (kind !== "sell_offer_filled" && amount && totalCoins) {
+        pos.sellUnitPrice = totalCoins / amount;
+      }
     }
   } else if (kind === "order_cancelled") {
     // Wording doesn't identify the item reliably; cancel the newest open order.

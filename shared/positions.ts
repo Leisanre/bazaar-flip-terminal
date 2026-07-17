@@ -5,6 +5,7 @@ export type BazaarEventKind =
   | "sell_offer_filled"
   | "insta_buy"
   | "insta_sell"
+  | "npc_sell"
   | "order_cancelled"
   | "unknown";
 

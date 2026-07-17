@@ -20,7 +20,8 @@ public class BazaarFlipClient implements ClientModInitializer {
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay) return;
 			String text = message.getString();
-			if (!text.contains("[Bazaar]")) return;
+			// Bazaar order events + NPC shop sells ("You sold Chum x64 for 320 Coins!")
+			if (!text.contains("[Bazaar]") && !text.startsWith("You sold ")) return;
 			uploader.enqueue(text);
 		});
 

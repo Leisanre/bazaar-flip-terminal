@@ -39,6 +39,10 @@ const PATTERNS: Pattern[] = [
   },
 ];
 
+// NPC shop sells use a different shape: "You sold Chum x64 for 320 Coins!"
+// (item BEFORE amount, no [Bazaar] prefix).
+const NPC_SELL_REGEX = /You sold\s+(.+?)\s+x([\d,]+)\s+for\s+([\d,.]+)\s+Coins/i;
+
 function num(raw: string): number {
   return parseFloat(raw.replace(/,/g, ""));
 }
@@ -46,6 +50,19 @@ function num(raw: string): number {
 export function parseBazaarLine(rawLine: string, player: string, timestamp: number): BazaarEvent {
   // Strip Minecraft color codes and leading [Bazaar] tag.
   const clean = rawLine.replace(/§./g, "").trim();
+
+  const npcSell = clean.match(NPC_SELL_REGEX);
+  if (npcSell) {
+    return {
+      kind: "npc_sell",
+      player,
+      itemName: npcSell[1],
+      amount: num(npcSell[2]),
+      totalCoins: num(npcSell[3]),
+      rawLine: clean,
+      timestamp,
+    };
+  }
 
   for (const { kind, regex } of PATTERNS) {
     const m = clean.match(regex);
