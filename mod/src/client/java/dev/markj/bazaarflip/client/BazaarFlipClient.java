@@ -15,7 +15,7 @@ public class BazaarFlipClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ModConfig config = ModConfig.load();
 		String player = Minecraft.getInstance().getUser().getName();
-		EventUploader uploader = new EventUploader(config.endpoint, player);
+		EventUploader uploader = new EventUploader(config.endpoints, player);
 
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay) return;
@@ -25,6 +25,6 @@ public class BazaarFlipClient implements ClientModInitializer {
 		});
 
 		System.out.println("[bazaarflip] tracking bazaar chat for " + player
-			+ " -> " + config.endpoint);
+			+ " -> " + String.join(", ", config.endpoints));
 	}
 }

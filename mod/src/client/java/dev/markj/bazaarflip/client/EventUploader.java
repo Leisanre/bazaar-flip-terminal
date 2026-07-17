@@ -34,11 +34,11 @@ public class EventUploader {
 			t.setDaemon(true);
 			return t;
 		});
-	private final String endpoint;
+	private final List<String> endpoints;
 	private final String player;
 
-	public EventUploader(String endpoint, String player) {
-		this.endpoint = endpoint;
+	public EventUploader(List<String> endpoints, String player) {
+		this.endpoints = endpoints;
 		this.player = player;
 		scheduler.scheduleAtFixedRate(this::flush, 2, 2, TimeUnit.SECONDS);
 	}
@@ -62,17 +62,21 @@ public class EventUploader {
 		batch.forEach(lines::add);
 		body.add("lines", lines);
 
-		HttpRequest request = HttpRequest.newBuilder()
-			.uri(URI.create(endpoint))
-			.timeout(Duration.ofSeconds(5))
-			.header("Content-Type", "application/json")
-			.POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(body)))
-			.build();
+		String json = GSON.toJson(body);
+		for (String endpoint : endpoints) {
+			HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create(endpoint))
+				.timeout(Duration.ofSeconds(10))
+				.header("Content-Type", "application/json")
+				.POST(HttpRequest.BodyPublishers.ofString(json))
+				.build();
 
-		http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-			.exceptionally(e -> {
-				System.err.println("[bazaarflip] upload failed (server offline?): " + e.getMessage());
-				return null;
-			});
+			http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+				.exceptionally(e -> {
+					System.err.println("[bazaarflip] upload to " + endpoint
+						+ " failed (server offline?): " + e.getMessage());
+					return null;
+				});
+		}
 	}
 }
