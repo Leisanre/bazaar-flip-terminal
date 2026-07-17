@@ -7,6 +7,7 @@ import {
   calculateCraftFlip,
   calculateReverseNpcFlip,
   calculateForwardNpcFlip,
+  attachVerdict,
 } from "../services/flipCalculator.js";
 import { NPC_SHOP_PRICES } from "../data/npcShopPrices.js";
 import { checkManipulation } from "../services/priceHistoryService.js";
@@ -23,7 +24,7 @@ flipsRouter.get("/spread", (_req, res) => {
   const flips = getBazaarProducts()
     .map((product) => {
       const flip = calculateSpreadFlip(product);
-      return flip ? withManipulationCheck(flip, product) : null;
+      return flip ? attachVerdict(withManipulationCheck(flip, product)) : null;
     })
     .filter((f): f is NonNullable<typeof f> => f !== null)
     .sort((a, b) => b.profitPerHour - a.profitPerHour);

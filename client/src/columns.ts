@@ -9,7 +9,16 @@ export interface ColumnDef {
   emphasize?: boolean;
 }
 
+const VERDICT_RANK: Record<string, number> = { good: 2, risky: 1, avoid: 0 };
+const VERDICT_LABEL: Record<string, string> = { good: "✓ flip it", risky: "~ risky", avoid: "✗ avoid" };
+
 const spreadColumns: ColumnDef[] = [
+  {
+    key: "verdict",
+    label: "Verdict",
+    getValue: (f) => VERDICT_RANK[(f as any).verdict] ?? 1,
+    render: (f) => VERDICT_LABEL[(f as any).verdict] ?? "?",
+  },
   {
     key: "buyOrderPrice",
     label: "Buy Order",

@@ -42,6 +42,12 @@ export const MIN_DAILY_UNITS_SPREAD = 2_000;
 // enough that fills are fast and prices stay honest.
 export const SAFE_MODE_MIN_DAILY_TRADED = 500_000;
 
+// Verdict thresholds: margins above the sweet zone usually mean a hidden
+// catch; flow imbalance is the one-sided-market trap (fast entry, dead exit).
+export const VERDICT_MARGIN_SWEET_MAX = 30;
+export const VERDICT_RISKY_FLOW_IMBALANCE = 4;
+export const VERDICT_AVOID_FLOW_IMBALANCE = 10;
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

@@ -85,16 +85,29 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
             </button>
           </div>
         </td>
-        {columns.map((col) => (
-          <td
-            key={col.key}
-            className={
-              col.emphasize ? "profit-positive" : col.key === "marginPercent" ? "margin-cell" : ""
-            }
-          >
-            {col.render(flip)}
-          </td>
-        ))}
+        {columns.map((col) => {
+          if (col.key === "verdict") {
+            const verdict = (flip as { verdict?: string }).verdict ?? "risky";
+            const reason = (flip as { verdictReason?: string }).verdictReason ?? "";
+            return (
+              <td key={col.key}>
+                <span className={`verdict-chip verdict-${verdict}`} title={reason}>
+                  {col.render(flip)}
+                </span>
+              </td>
+            );
+          }
+          return (
+            <td
+              key={col.key}
+              className={
+                col.emphasize ? "profit-positive" : col.key === "marginPercent" ? "margin-cell" : ""
+              }
+            >
+              {col.render(flip)}
+            </td>
+          );
+        })}
       </tr>
       {isCraft && expanded && flip.type === "craft" && (
         <tr className="ingredient-row">

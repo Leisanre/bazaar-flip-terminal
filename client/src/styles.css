@@ -407,6 +407,31 @@ tbody td {
   cursor: help;
 }
 
+.verdict-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.verdict-good {
+  color: var(--gain-green);
+  border: 0.5px solid rgba(94, 201, 138, 0.35);
+}
+
+.verdict-risky {
+  color: var(--coin-gold);
+  border: 0.5px solid rgba(240, 196, 25, 0.3);
+}
+
+.verdict-avoid {
+  color: var(--loss-red);
+  border: 0.5px solid rgba(224, 85, 95, 0.35);
+}
+
 .unknown-badge {
   font-family: var(--font-mono);
   font-size: 10px;

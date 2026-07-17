@@ -42,6 +42,8 @@ export interface TradeActivity {
   coinsPerDay: number;
 }
 
+export type FlipVerdict = "good" | "risky" | "avoid";
+
 export interface SpreadFlip extends ManipulationCheck, TradeActivity {
   type: "spread";
   itemId: string;
@@ -51,6 +53,10 @@ export interface SpreadFlip extends ManipulationCheck, TradeActivity {
   profitPerUnit: number;
   volumeScore: number;
   profitPerHour: number;
+  // How lopsided the two flows are (1 = balanced; big = one dead lane).
+  flowImbalance: number;
+  verdict?: FlipVerdict;
+  verdictReason?: string;
 }
 
 export interface CraftFlip extends ManipulationCheck, TradeActivity {

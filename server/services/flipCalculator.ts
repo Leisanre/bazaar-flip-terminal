@@ -7,6 +7,10 @@ import {
   MIN_DAILY_COINS_SPREAD,
   MIN_DAILY_COINS_OTHER,
   MIN_DAILY_UNITS_SPREAD,
+  SAFE_MODE_MIN_DAILY_TRADED,
+  VERDICT_MARGIN_SWEET_MAX,
+  VERDICT_RISKY_FLOW_IMBALANCE,
+  VERDICT_AVOID_FLOW_IMBALANCE,
 } from "../../shared/constants.js";
 import type { BazaarProduct, CraftFlip, ItemRecipe, NpcFlip, SpreadFlip } from "../../shared/types.js";
 
@@ -44,6 +48,7 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
   // slower side of the moving-week average) x profit per unit. Ranks a 3%
   // margin that fills constantly above a 100% margin that fills never.
   const slowerSideWeekly = Math.min(product.buyMovingWeek, product.sellMovingWeek);
+  const fasterSideWeekly = Math.max(product.buyMovingWeek, product.sellMovingWeek);
   const tradedPerDay = slowerSideWeekly / 7;
   const coinsPerDay = tradedPerDay * sellOrderPrice;
   if (coinsPerDay < MIN_DAILY_COINS_SPREAD || tradedPerDay < MIN_DAILY_UNITS_SPREAD) return null;
@@ -59,7 +64,45 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
     profitPerHour: profitPerUnit * (slowerSideWeekly / HOURS_PER_WEEK),
     tradedPerDay,
     coinsPerDay,
+    flowImbalance: slowerSideWeekly > 0 ? fasterSideWeekly / slowerSideWeekly : Infinity,
   };
+}
+
+// Rolls every taught rule into one label. Call AFTER the manipulation check
+// has been attached so the suspicious/medianRatio fields are populated.
+export function attachVerdict(flip: SpreadFlip): SpreadFlip {
+  const reasons: string[] = [];
+  let verdict: "good" | "risky" | "avoid" = "good";
+
+  if (flip.suspicious) {
+    verdict = "avoid";
+    reasons.push(`price is ${flip.medianRatio?.toFixed(1)}x its normal level — likely pump`);
+  } else if (flip.flowImbalance > VERDICT_AVOID_FLOW_IMBALANCE) {
+    verdict = "avoid";
+    reasons.push(
+      `one-sided market (${flip.flowImbalance.toFixed(0)}x flow imbalance) — exit will crawl`
+    );
+  } else {
+    if (flip.medianRatio === undefined) {
+      verdict = "risky";
+      reasons.push("price history still warming up");
+    }
+    if (flip.marginPercent > VERDICT_MARGIN_SWEET_MAX) {
+      verdict = "risky";
+      reasons.push(`${flip.marginPercent.toFixed(0)}% margin is above the honest zone — ask why`);
+    }
+    if (flip.tradedPerDay < SAFE_MODE_MIN_DAILY_TRADED) {
+      verdict = "risky";
+      reasons.push("under 500k traded/day — slower fills");
+    }
+    if (flip.flowImbalance > VERDICT_RISKY_FLOW_IMBALANCE) {
+      verdict = "risky";
+      reasons.push(`${flip.flowImbalance.toFixed(0)}x flow imbalance — one lane is slow`);
+    }
+  }
+
+  if (reasons.length === 0) reasons.push("balanced flows, honest margin, deep market");
+  return { ...flip, verdict, verdictReason: reasons.join("; ") };
 }
 
 export function calculateCraftFlip(
