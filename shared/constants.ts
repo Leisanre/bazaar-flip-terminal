@@ -52,6 +52,10 @@ export const VERDICT_AVOID_FLOW_IMBALANCE = 10;
 // vanish or reprice before your order interacts with it.
 export const THIN_WALL_UNITS = 64;
 
+// Crowding: competing buy orders per 1k units of daily flow. Above this,
+// expect constant 0.1-coin undercut wars for your queue spot.
+export const CONTESTED_ORDERS_PER_1K_FLOW = 1;
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

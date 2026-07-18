@@ -61,6 +61,8 @@ export interface SpreadFlip extends ManipulationCheck, TradeActivity {
   flowImbalance: number;
   // Units backing the fragile side's best price.
   priceWallUnits: number;
+  // Competing buy orders per 1k units of daily flow (crowding).
+  contention: number;
   verdict?: FlipVerdict;
   verdictReason?: string;
 }

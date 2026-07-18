@@ -12,6 +12,7 @@ import {
   VERDICT_RISKY_FLOW_IMBALANCE,
   VERDICT_AVOID_FLOW_IMBALANCE,
   THIN_WALL_UNITS,
+  CONTESTED_ORDERS_PER_1K_FLOW,
 } from "../../shared/constants.js";
 import type { BazaarProduct, CraftFlip, ItemRecipe, NpcFlip, SpreadFlip } from "../../shared/types.js";
 
@@ -67,6 +68,7 @@ export function calculateSpreadFlip(product: BazaarProduct): SpreadFlip | null {
     coinsPerDay,
     flowImbalance: slowerSideWeekly > 0 ? fasterSideWeekly / slowerSideWeekly : Infinity,
     priceWallUnits: Math.min(product.buyWallUnits, product.sellWallUnits),
+    contention: product.buyOrders / (tradedPerDay / 1000),
   };
 }
 
@@ -105,6 +107,12 @@ export function attachVerdict(flip: SpreadFlip): SpreadFlip {
       verdict = "risky";
       reasons.push(
         `best price backed by only ${flip.priceWallUnits} units — fragile, may vanish`
+      );
+    }
+    if (flip.contention > CONTESTED_ORDERS_PER_1K_FLOW) {
+      verdict = "risky";
+      reasons.push(
+        `heavily contested (${flip.contention.toFixed(1)} competing orders per 1k daily flow) — expect undercut wars`
       );
     }
   }
