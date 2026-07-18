@@ -67,6 +67,22 @@ function checkPositions(): void {
       );
     }
 
+    // Sell offer filled but not yet claimed (no price yet): prompt the claim —
+    // the coins sit at the bazaar until collected.
+    if (
+      prev === "selling" &&
+      pos.status === "closed" &&
+      pos.closedBy === "bazaar" &&
+      pos.sellUnitPrice === undefined &&
+      alerted.get(key) !== "sell_filled"
+    ) {
+      alerted.set(key, "sell_filled");
+      sendDiscordAlert(
+        `✅ **Sell filled** — ${pos.itemName} x${pos.amount} sold! Go claim your coins at the bazaar (profit receipt follows once claimed).`,
+        pos.player
+      );
+    }
+
     if (pos.status === "closed" && alerted.get(key) !== "closed") {
       // Bazaar sells close before the claim receipt delivers the real price —
       // hold the announcement until profit is computable, don't skip it.
