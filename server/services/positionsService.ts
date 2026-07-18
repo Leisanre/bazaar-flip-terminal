@@ -138,6 +138,21 @@ export function applyEvent(event: BazaarEvent): void {
         toMark -= pos.amount;
       }
     }
+  } else if (kind === "order_flipped" && itemName && amount) {
+    // "Flip Order" button: holdings become a sell offer at an unknown price;
+    // the claim receipt backfills the real number later.
+    let toMark = amount;
+    for (const pos of positions) {
+      if (toMark <= 0) break;
+      if (
+        pos.player === player &&
+        (pos.status === "holding" || pos.status === "waiting_fill") &&
+        pos.itemName.toLowerCase() === itemName.toLowerCase()
+      ) {
+        pos.status = "selling";
+        toMark -= pos.amount;
+      }
+    }
   } else if (
     (kind === "sell_offer_filled" || kind === "insta_sell" || kind === "npc_sell" || kind === "claim_sold") &&
     itemName &&

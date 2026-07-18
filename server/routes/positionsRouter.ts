@@ -5,6 +5,11 @@ import { applyEvent, getPositions, dismissPosition } from "../services/positions
 export const positionsRouter = Router();
 positionsRouter.use(json());
 
+// Mod retries can deliver the same lines twice — drop exact repeats seen
+// within the window.
+const recentLines = new Map<string, number>();
+const DEDUPE_WINDOW_MS = 60_000;
+
 // The mod posts raw chat lines; parsing lives server-side so new wordings
 // never require a mod rebuild.
 positionsRouter.post("/events", (req, res) => {
@@ -13,9 +18,16 @@ positionsRouter.post("/events", (req, res) => {
     res.status(400).json({ error: "expected { player: string, lines: string[] }" });
     return;
   }
+  const now = Date.now();
+  for (const [key, seenAt] of recentLines) {
+    if (now - seenAt > DEDUPE_WINDOW_MS) recentLines.delete(key);
+  }
   for (const line of lines) {
     if (typeof line !== "string") continue;
-    applyEvent(parseBazaarLine(line, player, Date.now()));
+    const key = `${player}|${line}`;
+    if (recentLines.has(key)) continue;
+    recentLines.set(key, now);
+    applyEvent(parseBazaarLine(line, player, now));
   }
   res.json({ ok: true, received: lines.length });
 });

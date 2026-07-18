@@ -72,10 +72,21 @@ public class EventUploader {
 				.build();
 
 			http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-				.exceptionally(e -> {
-					System.err.println("[bazaarflip] upload to " + endpoint
-						+ " failed (server offline?): " + e.getMessage());
-					return null;
+				.whenComplete((response, error) -> {
+					boolean failed = error != null
+						|| response.statusCode() < 200 || response.statusCode() >= 300;
+					if (failed && endpoint.contains("localhost")) {
+						// Local server down: requeue so trades survive until it
+						// comes back. Capped so a dead server can't eat memory.
+						if (queue.size() < 2000) {
+							batch.forEach(queue::add);
+						}
+						System.err.println("[bazaarflip] local server unreachable — "
+							+ batch.size() + " lines requeued");
+					} else if (failed) {
+						System.err.println("[bazaarflip] upload to " + endpoint
+							+ " failed: " + (error != null ? error.getMessage() : response.statusCode()));
+					}
 				});
 		}
 	}

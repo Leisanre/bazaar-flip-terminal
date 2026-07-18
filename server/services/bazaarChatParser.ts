@@ -37,6 +37,13 @@ const PATTERNS: Pattern[] = [
     kind: "order_cancelled",
     regex: /Cancelled!\s+Refunded\s+(.+)/i,
   },
+  {
+    // The bazaar's one-click "Flip Order" button: filled buy order becomes a
+    // sell offer directly. Message carries expected profit, not the price —
+    // the claim receipt supplies the real number later.
+    kind: "order_flipped",
+    regex: /Order Flipped!\s+([\d,]+)x?\s+(.+?)\s+for\s+([\d,.]+)\s+coins of total expected profit/i,
+  },
 ];
 
 // NPC shop sells use a different shape: "You sold Chum x64 for 320 Coins!"
