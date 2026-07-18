@@ -29,6 +29,49 @@ function findOpen(player: string, itemName: string, status: TrackedPosition["sta
   );
 }
 
+// Sells rarely match buy chunks 1:1 (buy 33+33, sell 64). Walk open
+// positions oldest-first, closing whole chunks and splitting the last one
+// when a sale only partially covers it.
+function closeForSale(
+  player: string,
+  itemName: string,
+  amount: number,
+  unitPrice: number | undefined,
+  closedBy: "bazaar" | "npc",
+  timestamp: number
+): void {
+  let remaining = amount;
+  const candidates = positions.filter(
+    (p) =>
+      p.player === player &&
+      p.itemName.toLowerCase() === itemName.toLowerCase() &&
+      (p.status === "selling" || p.status === "holding")
+  );
+  for (const pos of candidates) {
+    if (remaining <= 0) break;
+    if (pos.amount <= remaining) {
+      remaining -= pos.amount;
+      pos.status = "closed";
+      pos.closedAt = timestamp;
+      pos.closedBy = closedBy;
+      if (unitPrice !== undefined) pos.sellUnitPrice = unitPrice;
+    } else {
+      const closedPart: TrackedPosition = {
+        ...pos,
+        id: String(nextId++),
+        amount: remaining,
+        status: "closed",
+        closedAt: timestamp,
+        closedBy,
+        sellUnitPrice: unitPrice ?? pos.sellUnitPrice,
+      };
+      positions.push(closedPart);
+      pos.amount -= remaining;
+      remaining = 0;
+    }
+  }
+}
+
 // Display name -> bazaar item id, built lazily from the items resource plus
 // the reconstructed-name fallback over live bazaar ids.
 function resolveItemId(itemName: string): string | undefined {
@@ -80,23 +123,48 @@ export function applyEvent(event: BazaarEvent): void {
       openedAt: timestamp,
     });
   } else if (kind === "sell_offer_setup" && itemName && amount && totalCoins) {
-    const pos = findOpen(player, itemName, "holding");
-    if (pos) {
-      pos.status = "selling";
-      pos.sellUnitPrice = totalCoins / amount;
+    // Mark holdings as selling across chunks until the offer amount is covered.
+    let toMark = amount;
+    const price = totalCoins / amount;
+    for (const pos of positions) {
+      if (toMark <= 0) break;
+      if (
+        pos.player === player &&
+        pos.status === "holding" &&
+        pos.itemName.toLowerCase() === itemName.toLowerCase()
+      ) {
+        pos.status = "selling";
+        pos.sellUnitPrice = price;
+        toMark -= pos.amount;
+      }
     }
   } else if (
-    (kind === "sell_offer_filled" || kind === "insta_sell" || kind === "npc_sell") &&
-    itemName
+    (kind === "sell_offer_filled" || kind === "insta_sell" || kind === "npc_sell" || kind === "claim_sold") &&
+    itemName &&
+    amount
   ) {
-    const pos = findOpen(player, itemName, "selling") ?? findOpen(player, itemName, "holding");
-    if (pos) {
-      pos.status = "closed";
-      pos.closedAt = timestamp;
-      pos.closedBy = kind === "npc_sell" ? "npc" : "bazaar";
-      if (kind !== "sell_offer_filled" && amount && totalCoins) {
-        pos.sellUnitPrice = totalCoins / amount;
+    const price =
+      event.unitPrice ?? (kind !== "sell_offer_filled" && totalCoins ? totalCoins / amount : undefined);
+    // The claim receipt arrives after "was filled" already closed the
+    // position — its job then is backfilling the exact per-unit price.
+    if (kind === "claim_sold" && price !== undefined) {
+      let toFill = amount;
+      for (const pos of [...positions].reverse()) {
+        if (toFill <= 0) break;
+        if (
+          pos.player === player &&
+          pos.status === "closed" &&
+          pos.closedBy === "bazaar" &&
+          pos.itemName.toLowerCase() === itemName.toLowerCase() &&
+          pos.sellUnitPrice === undefined
+        ) {
+          pos.sellUnitPrice = price;
+          toFill -= pos.amount;
+        }
       }
+      if (toFill > 0) closeForSale(player, itemName, toFill, price, "bazaar", timestamp);
+    } else {
+      closeForSale(player, itemName, amount, price, kind === "npc_sell" ? "npc" : "bazaar", timestamp);
     }
   } else if (kind === "order_cancelled") {
     // Wording doesn't identify the item reliably; cancel the newest open order.

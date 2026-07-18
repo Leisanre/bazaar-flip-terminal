@@ -43,6 +43,11 @@ const PATTERNS: Pattern[] = [
 // (item BEFORE amount, no [Bazaar] prefix).
 const NPC_SELL_REGEX = /You sold\s+(.+?)\s+x([\d,]+)\s+for\s+([\d,.]+)\s+Coins/i;
 
+// "Claimed 114,936 coins from selling 64x Enchanted Red Sand at 1,818.6 each!"
+// — the definitive sell receipt, with the exact per-unit price.
+const CLAIM_SOLD_REGEX =
+  /Claimed\s+([\d,.]+)\s+coins?\s+from selling\s+([\d,]+)x?\s+(.+?)\s+at\s+([\d,.]+)\s+each/i;
+
 function num(raw: string): number {
   return parseFloat(raw.replace(/,/g, ""));
 }
@@ -50,6 +55,20 @@ function num(raw: string): number {
 export function parseBazaarLine(rawLine: string, player: string, timestamp: number): BazaarEvent {
   // Strip Minecraft color codes and leading [Bazaar] tag.
   const clean = rawLine.replace(/§./g, "").trim();
+
+  const claimSold = clean.match(CLAIM_SOLD_REGEX);
+  if (claimSold) {
+    return {
+      kind: "claim_sold",
+      player,
+      totalCoins: num(claimSold[1]),
+      amount: num(claimSold[2]),
+      itemName: claimSold[3],
+      unitPrice: num(claimSold[4]),
+      rawLine: clean,
+      timestamp,
+    };
+  }
 
   const npcSell = clean.match(NPC_SELL_REGEX);
   if (npcSell) {

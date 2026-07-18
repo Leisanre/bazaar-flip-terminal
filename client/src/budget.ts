@@ -1,7 +1,7 @@
 import { REALISTIC_FILL_SHARE } from "../../shared/constants.js";
 import type { FlipOpportunity } from "../../shared/types.js";
 
-function costPerUnit(flip: FlipOpportunity): number {
+export function costPerUnit(flip: FlipOpportunity): number {
   if (flip.type === "spread") return flip.buyOrderPrice;
   if (flip.type === "craft") return flip.craftCost;
   return flip.costPrice;

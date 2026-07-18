@@ -3,7 +3,7 @@ import type { FlipOpportunity, FlipType } from "../../../shared/types.js";
 import { getColumnsForType, type ColumnDef } from "../columns.js";
 import { formatItemName, formatCoins } from "../format.js";
 import type { ItemMeta } from "../api.js";
-import { yourProfitPerDay, estimatedFillMinutes, formatFillTime } from "../budget.js";
+import { yourProfitPerDay, estimatedFillMinutes, formatFillTime, costPerUnit } from "../budget.js";
 import { SAFE_MODE_MIN_DAILY_TRADED } from "../../../shared/constants.js";
 import { FlipRow } from "./FlipRow.js";
 
@@ -40,6 +40,13 @@ export function FlipTable({
     if (budget <= 0) return base;
     return [
       ...base,
+      {
+        key: "canBuy",
+        label: "Can Buy",
+        getValue: (f) => Math.floor(budget / Math.max(costPerUnit(f), 0.1)),
+        render: (f) =>
+          Math.floor(budget / Math.max(costPerUnit(f), 0.1)).toLocaleString("en-US") + "x",
+      },
       {
         key: "yourPerDay",
         label: "Your/Day",

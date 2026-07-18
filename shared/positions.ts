@@ -6,6 +6,7 @@ export type BazaarEventKind =
   | "insta_buy"
   | "insta_sell"
   | "npc_sell"
+  | "claim_sold"
   | "order_cancelled"
   | "unknown";
 
@@ -15,6 +16,7 @@ export interface BazaarEvent {
   itemName?: string;
   amount?: number;
   totalCoins?: number;
+  unitPrice?: number;
   rawLine: string;
   timestamp: number;
 }

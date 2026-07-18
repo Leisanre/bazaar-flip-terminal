@@ -1,10 +1,11 @@
+// Exact numbers below a million (0.1-coin battles need real decimals);
+// compact m/b above, where precision stops mattering.
 export function formatCoins(value: number): string {
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
   if (abs >= 1_000_000_000) return `${sign}${(abs / 1_000_000_000).toFixed(2)}b`;
   if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(2)}m`;
-  if (abs >= 1_000) return `${sign}${(abs / 1_000).toFixed(1)}k`;
-  return `${sign}${abs.toFixed(1)}`;
+  return value.toLocaleString("en-US", { maximumFractionDigits: 1 });
 }
 
 export function formatPercent(value: number): string {
