@@ -68,9 +68,11 @@ function checkPositions(): void {
     }
 
     if (pos.status === "closed" && alerted.get(key) !== "closed") {
-      alerted.set(key, "closed");
+      // Bazaar sells close before the claim receipt delivers the real price —
+      // hold the announcement until profit is computable, don't skip it.
       const profit = realizedProfit(pos);
       if (profit !== null) {
+        alerted.set(key, "closed");
         const spent = pos.buyUnitPrice * pos.amount;
         const marginPct = spent > 0 ? (profit / spent) * 100 : 0;
         const emoji = profit >= 0 ? "💰" : "🔻";
