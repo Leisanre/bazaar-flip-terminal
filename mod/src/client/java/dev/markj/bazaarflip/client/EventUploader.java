@@ -11,83 +11,96 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Batches [Bazaar] chat lines and posts them to the terminal server every
- * two seconds. Fire-and-forget: a dead server just means dropped batches and
- * a console note — never a gameplay problem.
+ * Each chat line gets a unique id at capture and each endpoint has its OWN
+ * queue — a dead server retries its own backlog without ever duplicating
+ * deliveries to healthy ones. Servers dedupe by id, so even a double-send
+ * is harmless.
  */
 public class EventUploader {
 	private static final Gson GSON = new Gson();
+	private static final int MAX_QUEUE = 2000;
+
+	private record Event(String id, String line) {}
 
 	private final HttpClient http = HttpClient.newBuilder()
 		.connectTimeout(Duration.ofSeconds(3))
 		.build();
-	private final ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<>();
+	private final Map<String, ConcurrentLinkedQueue<Event>> queues = new ConcurrentHashMap<>();
 	private final ScheduledExecutorService scheduler =
 		Executors.newSingleThreadScheduledExecutor(r -> {
 			Thread t = new Thread(r, "bazaarflip-uploader");
 			t.setDaemon(true);
 			return t;
 		});
-	private final List<String> endpoints;
 	private final String player;
 
 	public EventUploader(List<String> endpoints, String player) {
-		this.endpoints = endpoints;
 		this.player = player;
-		scheduler.scheduleAtFixedRate(this::flush, 2, 2, TimeUnit.SECONDS);
+		for (String endpoint : endpoints) {
+			queues.put(endpoint, new ConcurrentLinkedQueue<>());
+		}
+		scheduler.scheduleAtFixedRate(this::flushAll, 2, 2, TimeUnit.SECONDS);
 	}
 
 	public void enqueue(String line) {
-		queue.add(line);
+		Event event = new Event(UUID.randomUUID().toString(), line);
+		for (ConcurrentLinkedQueue<Event> queue : queues.values()) {
+			if (queue.size() < MAX_QUEUE) queue.add(event);
+		}
 	}
 
-	private void flush() {
+	private void flushAll() {
+		queues.forEach(this::flushEndpoint);
+	}
+
+	private void flushEndpoint(String endpoint, ConcurrentLinkedQueue<Event> queue) {
 		if (queue.isEmpty()) return;
 
-		List<String> batch = new ArrayList<>();
-		String line;
-		while ((line = queue.poll()) != null) {
-			batch.add(line);
+		List<Event> batch = new ArrayList<>();
+		Event event;
+		while ((event = queue.poll()) != null) {
+			batch.add(event);
 		}
 
 		JsonObject body = new JsonObject();
 		body.addProperty("player", player);
-		JsonArray lines = new JsonArray();
-		batch.forEach(lines::add);
-		body.add("lines", lines);
-
-		String json = GSON.toJson(body);
-		for (String endpoint : endpoints) {
-			HttpRequest request = HttpRequest.newBuilder()
-				.uri(URI.create(endpoint))
-				.timeout(Duration.ofSeconds(10))
-				.header("Content-Type", "application/json")
-				.POST(HttpRequest.BodyPublishers.ofString(json))
-				.build();
-
-			http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
-				.whenComplete((response, error) -> {
-					boolean failed = error != null
-						|| response.statusCode() < 200 || response.statusCode() >= 300;
-					if (failed && endpoint.contains("localhost")) {
-						// Local server down: requeue so trades survive until it
-						// comes back. Capped so a dead server can't eat memory.
-						if (queue.size() < 2000) {
-							batch.forEach(queue::add);
-						}
-						System.err.println("[bazaarflip] local server unreachable — "
-							+ batch.size() + " lines requeued");
-					} else if (failed) {
-						System.err.println("[bazaarflip] upload to " + endpoint
-							+ " failed: " + (error != null ? error.getMessage() : response.statusCode()));
-					}
-				});
+		JsonArray events = new JsonArray();
+		for (Event e : batch) {
+			JsonObject obj = new JsonObject();
+			obj.addProperty("id", e.id());
+			obj.addProperty("line", e.line());
+			events.add(obj);
 		}
+		body.add("events", events);
+
+		HttpRequest request = HttpRequest.newBuilder()
+			.uri(URI.create(endpoint))
+			.timeout(Duration.ofSeconds(10))
+			.header("Content-Type", "application/json")
+			.POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(body)))
+			.build();
+
+		http.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+			.whenComplete((response, error) -> {
+				boolean failed = error != null
+					|| response.statusCode() < 200 || response.statusCode() >= 300;
+				if (failed) {
+					// Requeue into THIS endpoint's queue only.
+					if (queue.size() + batch.size() <= MAX_QUEUE) {
+						batch.forEach(queue::add);
+					}
+					System.err.println("[bazaarflip] " + endpoint + " unreachable — "
+						+ batch.size() + " events held for retry");
+				}
+			});
 	}
 }
