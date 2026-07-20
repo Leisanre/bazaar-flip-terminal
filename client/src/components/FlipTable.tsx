@@ -159,6 +159,7 @@ export function FlipTable({
               flip={flip}
               columns={activeColumns}
               meta={meta}
+              budget={budget}
               isFavorite={favorites.has(flip.itemId)}
               onToggleFavorite={onToggleFavorite}
             />

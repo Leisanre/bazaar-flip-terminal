@@ -4,21 +4,36 @@ import type { ColumnDef } from "../columns.js";
 import type { ItemMeta } from "../api.js";
 import { formatCoins, formatItemName, tierColor, iconUrl } from "../format.js";
 import { Sparkline } from "./Sparkline.js";
+import { costPerUnit } from "../budget.js";
 
 interface FlipRowProps {
   flip: FlipOpportunity;
   columns: ColumnDef[];
   meta: ItemMeta;
+  budget: number;
   isFavorite: boolean;
   onToggleFavorite: (itemId: string) => void;
 }
 
-export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: FlipRowProps) {
+// Buy/sell entry price a flip type recommends, before the +0.1/-0.1 nudge.
+function tradePrices(flip: FlipOpportunity): { buy: number; sell: number } | null {
+  if (flip.type === "spread") return { buy: flip.buyOrderPrice, sell: flip.sellOrderPrice };
+  if (flip.type === "craft") return { buy: flip.craftCost, sell: flip.sellPrice };
+  if (flip.type === "npc" && flip.direction === "npc_to_market") {
+    return { buy: flip.costPrice, sell: flip.revenuePrice };
+  }
+  return null;
+}
+
+export function FlipRow({ flip, columns, meta, budget, isFavorite, onToggleFavorite }: FlipRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const displayName = meta.names[flip.itemId] ?? formatItemName(flip.itemId);
   const isCraft = flip.type === "craft";
+  const prices = tradePrices(flip);
+  const canBuy = budget > 0 ? Math.floor(budget / Math.max(costPerUnit(flip), 0.1)) : 0;
 
   function copyBzCommand(e: React.MouseEvent) {
     e.stopPropagation();
@@ -27,6 +42,17 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1200);
+      })
+      .catch((err) => console.error("clipboard write failed", err));
+  }
+
+  function copyField(e: React.MouseEvent, field: string, value: string) {
+    e.stopPropagation();
+    navigator.clipboard
+      .writeText(value)
+      .then(() => {
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 1200);
       })
       .catch((err) => console.error("clipboard write failed", err));
   }
@@ -121,6 +147,33 @@ export function FlipRow({ flip, columns, meta, isFavorite, onToggleFavorite }: F
                   .join("  •  ")}
                 {"  →  "}total cost {formatCoins(flip.craftCost)}, craft, then sell-order at{" "}
                 {formatCoins(flip.sellPrice)}
+              </div>
+            )}
+            {prices && (
+              <div className="quick-trade">
+                <span className="quick-trade-label">quick trade — copy, then paste into the in-game Custom Amount/Price prompt:</span>
+                <div className="quick-trade-buttons">
+                  {budget > 0 && (
+                    <button
+                      className="copy-field-button"
+                      onClick={(e) => copyField(e, "amount", String(canBuy))}
+                    >
+                      {copiedField === "amount" ? "copied!" : `Copy Amount (${canBuy.toLocaleString()})`}
+                    </button>
+                  )}
+                  <button
+                    className="copy-field-button"
+                    onClick={(e) => copyField(e, "buy", (prices.buy + 0.1).toFixed(1))}
+                  >
+                    {copiedField === "buy" ? "copied!" : `Copy Buy Price (${formatCoins(prices.buy + 0.1)})`}
+                  </button>
+                  <button
+                    className="copy-field-button"
+                    onClick={(e) => copyField(e, "sell", Math.max(prices.sell - 0.1, 0.1).toFixed(1))}
+                  >
+                    {copiedField === "sell" ? "copied!" : `Copy Sell Price (${formatCoins(prices.sell - 0.1)})`}
+                  </button>
+                </div>
               </div>
             )}
             <Sparkline itemId={flip.itemId} />
