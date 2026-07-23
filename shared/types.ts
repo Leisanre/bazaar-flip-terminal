@@ -90,3 +90,13 @@ export interface NpcFlip extends ManipulationCheck, TradeActivity {
 }
 
 export type FlipOpportunity = SpreadFlip | CraftFlip | NpcFlip;
+
+// Not a flip — a straight "what's worth the most per unit" listing, for
+// deciding whether a grind drop is worth selling vs hoarding/crafting.
+export interface HighValueItem {
+  itemId: string;
+  sellPricePerUnit: number;
+  buyPricePerUnit: number;
+  tradedPerDay: number;
+  sellWallUnits: number;
+}

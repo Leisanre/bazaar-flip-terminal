@@ -13,8 +13,16 @@ import {
   VERDICT_AVOID_FLOW_IMBALANCE,
   THIN_WALL_UNITS,
   CONTESTED_ORDERS_PER_1K_FLOW,
+  HIGH_VALUE_MIN_SELL_PRICE,
 } from "../../shared/constants.js";
-import type { BazaarProduct, CraftFlip, ItemRecipe, NpcFlip, SpreadFlip } from "../../shared/types.js";
+import type {
+  BazaarProduct,
+  CraftFlip,
+  HighValueItem,
+  ItemRecipe,
+  NpcFlip,
+  SpreadFlip,
+} from "../../shared/types.js";
 
 function marginPercent(cost: number, revenueAfterTax: number): number {
   if (cost <= 0) return 0;
@@ -225,5 +233,21 @@ export function calculateForwardNpcFlip(
     profitPerDay: profitPerUnit * dailyLimit,
     tradedPerDay,
     coinsPerDay,
+  };
+}
+
+// Straight "what's worth the most per unit" — for deciding whether a grind
+// drop is worth insta-selling. Not profit-filtered like a flip; this is a
+// price reference, so it only needs a real market to quote from.
+export function calculateHighValueItem(product: BazaarProduct): HighValueItem | null {
+  if (product.sellPrice < HIGH_VALUE_MIN_SELL_PRICE) return null;
+  if (product.buyOrders < MIN_ORDER_COUNT) return null;
+
+  return {
+    itemId: product.productId,
+    sellPricePerUnit: product.sellPrice,
+    buyPricePerUnit: product.buyPrice,
+    tradedPerDay: product.sellMovingWeek / 7,
+    sellWallUnits: product.sellWallUnits,
   };
 }

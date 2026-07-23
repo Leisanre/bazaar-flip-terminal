@@ -4,6 +4,7 @@ import { fetchFlips, fetchItemMeta, type ItemMeta } from "./api.js";
 import { FlipTable } from "./components/FlipTable.js";
 import { Toolbar } from "./components/Toolbar.js";
 import { TradesPanel } from "./components/TradesPanel.js";
+import { HighValueTable } from "./components/HighValueTable.js";
 
 const BUDGET_KEY = "bft-budget";
 const FAVORITES_KEY = "bft-favorites";
@@ -23,12 +24,13 @@ function loadFavorites(): Set<string> {
   }
 }
 
-type TabId = FlipType | "trades";
+type TabId = FlipType | "trades" | "highvalue";
 
 const TABS: { type: TabId; label: string }[] = [
   { type: "spread", label: "Bazaar Spread" },
   { type: "craft", label: "Craft Flips" },
   { type: "npc", label: "NPC Flips" },
+  { type: "highvalue", label: "High Value" },
   { type: "trades", label: "My Trades" },
 ];
 
@@ -131,7 +133,7 @@ export default function App() {
             onClick={() => setActiveTab(tab.type)}
           >
             {tab.label}
-            {tab.type !== "trades" && (
+            {tab.type !== "trades" && tab.type !== "highvalue" && (
               <span className="tab-count">{flipsByType[tab.type].length}</span>
             )}
           </button>
@@ -141,6 +143,8 @@ export default function App() {
       <main className="content">
         {activeTab === "trades" ? (
           <TradesPanel spreadFlips={flipsByType.spread} meta={meta} budget={budget} />
+        ) : activeTab === "highvalue" ? (
+          <HighValueTable meta={meta} />
         ) : (
           <>
             <Toolbar

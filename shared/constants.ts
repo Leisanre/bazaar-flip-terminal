@@ -56,6 +56,9 @@ export const THIN_WALL_UNITS = 64;
 // expect constant 0.1-coin undercut wars for your queue spot.
 export const CONTESTED_ORDERS_PER_1K_FLOW = 1;
 
+// High Value tab: floor for "worth picking up when you grind it."
+export const HIGH_VALUE_MIN_SELL_PRICE = 10_000;
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

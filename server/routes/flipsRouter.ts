@@ -7,6 +7,7 @@ import {
   calculateCraftFlip,
   calculateReverseNpcFlip,
   calculateForwardNpcFlip,
+  calculateHighValueItem,
   attachVerdict,
 } from "../services/flipCalculator.js";
 import { NPC_SHOP_PRICES } from "../data/npcShopPrices.js";
@@ -72,4 +73,13 @@ flipsRouter.get("/npc", (_req, res) => {
 
   flips.sort((a, b) => b.marginPercent - a.marginPercent);
   res.json({ lastUpdated: getBazaarLastUpdated(), flips });
+});
+
+flipsRouter.get("/high-value", (_req, res) => {
+  const items = getBazaarProducts()
+    .map(calculateHighValueItem)
+    .filter((i): i is NonNullable<typeof i> => i !== null)
+    .sort((a, b) => b.sellPricePerUnit - a.sellPricePerUnit)
+    .slice(0, 600);
+  res.json({ lastUpdated: getBazaarLastUpdated(), items });
 });
