@@ -59,6 +59,42 @@ export const CONTESTED_ORDERS_PER_1K_FLOW = 1;
 // High Value tab: floor for "worth picking up when you grind it."
 export const HIGH_VALUE_MIN_SELL_PRICE = 10_000;
 
+// Best-effort exclusion — Hypixel's API doesn't label how an item is
+// obtained, so this cuts well-known non-grind categories by name pattern:
+// crafted (enchant books, scrolls, upgrade stones) and Catacombs-only
+// (Perfect Gems, Master Stars, Art of War/Peace). Not exhaustive — some
+// crafted/dungeon items with no obvious naming pattern may still slip through.
+export const NON_GRINDABLE_PATTERNS: RegExp[] = [
+  /^ENCHANTMENT_/,
+  /^PERFECT_.*_GEM$/,
+  /_MASTER_STAR$/,
+  /_SCROLL$/,
+  /^GENERATOR_UPGRADE_STONE_/,
+  /^GRIFFIN_UPGRADE_STONE_/,
+  /WITCH_CAULDRON$/,
+  /^THE_ART_OF_/,
+  /^UNALLOYED_/,
+  /^RECOMBOBULATOR/,
+  /^BOOSTER_COOKIE$/,
+];
+
+// One-off vendor/shop items (Kuudra essence shop, Rift shop, dungeon
+// vendors) with no recipe and no shared naming pattern — impossible to
+// catch systematically, added by hand as spotted.
+export const NON_GRINDABLE_ITEM_IDS = new Set([
+  "TRUNK_POLISH",
+  "DIVAN_POWDER_COATING",
+  "ENDSTONE_IDOL",
+  "PERFECT_PLATE",
+  "NULL_BLADE",
+  "MAGIC_TOP_HAT",
+  "SPOTLITE",
+  "GLEAMING_CRYSTAL",
+  "SKELETON_KEY",
+  "PET_ITEM_TIER_BOOST_DROP",
+  "BRAIDED_GRIFFIN_FEATHER",
+]);
+
 // Budget planner: assume you capture only this share of an item's daily
 // trades — you're one of several flippers competing for the same fills.
 export const REALISTIC_FILL_SHARE = 0.1;

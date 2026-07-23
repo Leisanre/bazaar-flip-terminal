@@ -14,6 +14,8 @@ import {
   THIN_WALL_UNITS,
   CONTESTED_ORDERS_PER_1K_FLOW,
   HIGH_VALUE_MIN_SELL_PRICE,
+  NON_GRINDABLE_PATTERNS,
+  NON_GRINDABLE_ITEM_IDS,
 } from "../../shared/constants.js";
 import type {
   BazaarProduct,
@@ -242,6 +244,8 @@ export function calculateForwardNpcFlip(
 export function calculateHighValueItem(product: BazaarProduct): HighValueItem | null {
   if (product.sellPrice < HIGH_VALUE_MIN_SELL_PRICE) return null;
   if (product.buyOrders < MIN_ORDER_COUNT) return null;
+  if (NON_GRINDABLE_PATTERNS.some((pattern) => pattern.test(product.productId))) return null;
+  if (NON_GRINDABLE_ITEM_IDS.has(product.productId)) return null;
 
   return {
     itemId: product.productId,

@@ -62,6 +62,10 @@ export function HighValueTable({ meta }: HighValueTableProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <span className="spark-note">
+          filtered to exclude enchant books, Perfect Gems, Master Stars, and other Catacombs/crafted-only
+          items — best-effort by name pattern, since Hypixel's API doesn't label how an item is obtained
+        </span>
       </div>
       {visible.length === 0 ? (
         <div className="empty-state">no items match right now</div>
